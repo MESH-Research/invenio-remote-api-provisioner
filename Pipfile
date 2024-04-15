@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+alembic = "1.10.4"
+invenio-app-rdm = {version = "~=12.0.0b2.dev72", extras = ["opensearch2"]}
+invenio-remote-api-provisioner = {editable = true, extras = ["all"], path = "."}
+docker-services-cli = "*"
+check-manifest = "*"
+pytest-invenio = "*"
+psycopg2 = "*"
+opensearch-dsl = "*"
+invenio-administration = "*"
+invenio-communities = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

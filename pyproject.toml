@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "invenio-remote-api-provisioner"
+version = "2023.07.05"
+description = "Provides social groups infrastructure for InvenioRDM"
+readme = "README.md"
+authors = [{ name = "MESH Research", email = "scottia4@msu.edu" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+keywords = ["invenio", "inveniordm", "groups", "social", "research"]
+dependencies = [
+    "click>=7.0"
+]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = [
+    "check-manifest",
+    "pip-tools",
+    "pytest>=7.3.2",
+    "pytest-runner",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/MESH-Research/invenio-remote-api-provisioner"
+
+
+[tool.pytest.ini_options]
+addopts = "--doctest-glob='*.rst' --doctest-modules"
+testpaths = [ "tests", "invenio_remote_api_provisioner" ]
+
+[project.entry-points."invenio_base.apps"]
+invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
+
+[project.entry-points."invenio_base.api_apps"]
+invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
+
+[project.entry-points."invenio_celery.tasks"]
+invenio_remote_api_provisioner = "invenio_remote_api_provisioner.tasks"

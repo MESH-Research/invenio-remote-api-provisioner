@@ -1,0 +1,35 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2023 MESH Research
+#
+# invenio-subjects-fast is free software; you can redistribute it and/or
+# modify it under the terms of the MIT License; see LICENSE file for more
+# details.
+
+# Update this manifest file by running the following commands:
+# (please sort the lines in this file after running below commands)
+#
+#  check-manifest -u
+
+include .gitignore
+include *.lock
+include *.md
+include *.rst
+include *.sh
+include *.txt
+include Pipfile
+exclude .DS_Store
+recursive-include tests .gitkeep
+recursive-include tests *.py
+recursive-exclude tests .DS_Store
+recursive-include invenio_remote_api_provisioner .gitkeep
+recursive-include invenio_remote_api_provisioner *.py
+recursive-include invenio_remote_api_provisioner *.json
+recursive-include invenio_remote_api_provisioner *.log
+recursive-exclude invenio_remote_api_provisioner .DS_Store
+
+# added by check-manifest
+recursive-include tests *.lock
+
+# added by check-manifest
+recursive-include invenio_remote_api_provisioner *.mako
