@@ -7,14 +7,12 @@
 # and/or modify it under the terms of the MIT License; see
 # LICENSE file for more details.
 
-
 from kombu import Exchange
 
-# TODO: Deprecated as unnecessary, using celery directly
+REMOTE_API_PROVISIONER_EVENTS = {}
+
 REMOTE_API_PROVISIONER_MQ_EXCHANGE = Exchange(
-    "remote-api-updates",
+    "user-data-updates",
     type="direct",
     delivery_mode="transient",  # in-memory queue
 )
-
-REMOTE_API_PROVISIONER_EVENTS = {}

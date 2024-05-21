@@ -5,8 +5,7 @@ name = "pypi"
 
 [packages]
 alembic = "1.10.4"
-invenio-app-rdm = {version = "~=12.0.0b2.dev72", extras = ["opensearch2"]}
-invenio-remote-api-provisioner = {editable = true, extras = ["all"], path = "."}
+invenio-app-rdm = {version = "~=12.0.0b3.dev3", extras = ["opensearch2"]}
 docker-services-cli = "*"
 check-manifest = "*"
 pytest-invenio = "*"
@@ -14,6 +13,11 @@ psycopg2 = "*"
 opensearch-dsl = "*"
 invenio-administration = "*"
 invenio-communities = "*"
+iso639 = "*"
+invenio-remote-user-data = {file = "../invenio-remote-user-data", editable = true}
+invenio-group-collections = {file = "../invenio-group-collections", editable = true}
+requests-mock = "*"
+invenio-remote-api-provisioner = {file = ".", editable = true}
 
 [dev-packages]
 

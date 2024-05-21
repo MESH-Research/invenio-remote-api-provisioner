@@ -40,7 +40,7 @@ Homepage = "https://github.com/MESH-Research/invenio-remote-api-provisioner"
 
 
 [tool.pytest.ini_options]
-addopts = "--doctest-glob='*.rst' --doctest-modules"
+addopts = "--doctest-glob='*.rst' --doctest-modules --ignore=tests/helpers"
 testpaths = [ "tests", "invenio_remote_api_provisioner" ]
 
 [project.entry-points."invenio_base.apps"]
@@ -51,3 +51,6 @@ invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemo
 
 [project.entry-points."invenio_celery.tasks"]
 invenio_remote_api_provisioner = "invenio_remote_api_provisioner.tasks"
+
+[project.entry-points."invenio_queues.queues"]
+invenio_remote_api_provisioner = "invenio_remote_api_provisioner.queues:declare_queues"

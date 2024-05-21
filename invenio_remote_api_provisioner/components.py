@@ -10,19 +10,23 @@
 
 """RDM service component to trigger external provisioning messages."""
 
+from calendar import c
+import arrow
 from flask import current_app
 from invenio_accounts import current_accounts
+from invenio_communities.proxies import current_communities
 from invenio_drafts_resources.services.records.components import (
     ServiceComponent,
 )
+from invenio_queues import current_queues
+from invenio_rdm_records.proxies import (
+    current_rdm_records_service as records_service,
+)
+import os
+from pprint import pformat
 
-# from invenio_rdm_records.proxies import (
-#     current_rdm_records_service as records_service,
-# )
-from pprint import pprint
-
-from .tasks import send_remote_api_update
-from .utils import logger as update_logger
+from .signals import remote_api_provisioning_triggered
+from .utils import get_user_idp_info
 
 
 def RemoteAPIProvisionerFactory(app_config, service_type):
@@ -74,6 +78,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
 
     all_endpoints = app_config.get("REMOTE_API_PROVISIONER_EVENTS", {})
     endpoints = all_endpoints.get(service_type, {})
+    service_type = service_type
 
     def _get_payload_object(
         self,
@@ -112,24 +117,12 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                 "username": user.username,
             }
             owner.update(user.user_profile)
-            if (
-                user.external_identifiers
-                and len(user.external_identifiers) > 0
-            ):
-                owner.update(
-                    {
-                        "authentication_source": user.external_identifiers[
-                            0
-                        ].method,
-                        "id_from_idp": user.external_identifiers[0].id,
-                    }
-                )
+            owner.update(get_user_idp_info(user))
 
         if callable(payload):
             payload_object = payload(
                 identity, record=record, owner=owner, **kwargs
             )
-            return payload_object
         elif isinstance(payload, dict):
             payload_object = payload
         else:
@@ -137,73 +130,141 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                 "Event payload must be a dict or a callable that returns a"
                 " dict."
             )
-
         if "internal_error" in payload_object.keys():
-            update_logger.error(
-                "Error generating the payload for the notification:"
-            )
-            update_logger.error(payload_object["internal_error"])
+            raise RuntimeError(payload_object["internal_error"])
         else:
             return payload_object
 
     def _do_method_action(
-        self, service_method, identity, record=None, draft=None, **kwargs
+        self,
+        service_method,
+        identity,
+        record=None,
+        draft=None,
+        **kwargs,
     ):
+        current_app.logger.debug("Service method: %s", service_method)
+        current_app.logger.debug("record:")
+        current_app.logger.debug(record)
+        current_app.logger.debug("data:")
+        current_app.logger.debug(kwargs.get("data"))
+        current_app.logger.debug(kwargs.keys())
         for endpoint, events in self.endpoints.items():
             if service_method in events.keys():
-                update_logger.info(
-                    f"Sending {service_method} message to {endpoint}"
-                )
-                if events[service_method].get("url_factory"):
-                    print("Making url*********************")
-                    request_url = events[service_method]["url_factory"](
-                        identity, record=record, draft=draft, **kwargs
+                timing_field = events[service_method].get("timing_field")
+                # FIXME: prevent infinite loop if callback triggers a
+                # subsequent publish by not issuing signal
+                # if record has been updated in the last 30 seconds
+                # NOTE: You will need to update the timing field value in your
+                # callback function. We cannot do this here in case the API
+                # call is not successful.
+                visibility = record.get("access", {}).get("visibility", None)
+                if not visibility:
+                    visibility = draft.get("access", {}).get(
+                        "record", "public"
                     )
-                else:
-                    print("Not Making url*********************")
-                    request_url = endpoint
 
-                if callable(events[service_method]["http_method"]):
-                    http_method = events[service_method]["http_method"](
-                        identity, record=record, draft=draft, **kwargs
+                last_update = None
+                if record and visibility == "public":
+                    # TODO: has to be custom field?
+                    if timing_field:
+                        last_update = record["custom_fields"].get(timing_field)
+                    current_app.logger.info(
+                        f"Record {record.get('id')} last updated at {last_update}"
                     )
-                else:
-                    http_method = events[service_method]["http_method"]
+                    last_update_dt = (
+                        arrow.get(last_update)
+                        if last_update
+                        else arrow.utcnow().shift(days=-1)
+                    )
+                    if last_update_dt.shift(seconds=5) > arrow.utcnow():
+                        current_app.logger.info(
+                            "Record has been updated in the last 30 seconds."
+                            " Avoiding infinite loop."
+                        )
+                        current_app.logger.info(last_update_dt)
+                    else:
+                        current_app.logger.info(
+                            "Record has not been updated in the last 30 "
+                            "seconds."
+                        )
+                        current_app.logger.info(
+                            f"Sending {self.service_type} {service_method} "
+                            f"message to {endpoint} for record {record.get('id') if record else None}, "
+                            f"draft {draft.get('id') if draft else None}"
+                        )
+                        if events[service_method].get("url_factory"):
+                            request_url = events[service_method][
+                                "url_factory"
+                            ](identity, record=record, draft=draft, **kwargs)
+                            current_app.logger.debug(
+                                "Request URL: %s", request_url
+                            )
+                        else:
+                            request_url = endpoint
 
-                payload_object = self._get_payload_object(
-                    identity,
-                    events[service_method]["payload"],
-                    record=record,
-                    draft=draft,
-                    with_record_owner=events[service_method].get(
-                        "with_record_owner", False
-                    ),
-                    **kwargs,
-                )
+                        if callable(events[service_method]["http_method"]):
+                            http_method = events[service_method][
+                                "http_method"
+                            ](identity, record=record, draft=draft, **kwargs)
+                        else:
+                            http_method = events[service_method]["http_method"]
 
-                shared_arguments = {
-                    "service_type": self.service_type,
-                    "service_method": service_method,
-                    "request_url": request_url,
-                    "http_method": http_method,
-                    "payload_object": payload_object,
-                    "record_id": record["id"] if record else None,
-                    "draft_id": draft["id"] if draft else None,
-                }
+                        payload_object = None
+                        if events[service_method].get("payload"):
+                            try:
+                                payload_object = self._get_payload_object(
+                                    identity,
+                                    events[service_method]["payload"],
+                                    record=record,
+                                    draft=draft,
+                                    with_record_owner=events[
+                                        service_method
+                                    ].get("with_record_owner", False),
+                                    **kwargs,
+                                )
+                                # current_app.logger.debug("Payload object:")
+                                # current_app.logger.debug(pformat(payload_object))
+                            except (RuntimeError, ValueError) as e:
+                                current_app.logger.error(
+                                    f"Could not send "
+                                    f"{self.service_type} {service_method} "
+                                    f"update for record {record.get('id') if record else None}"
+                                    f", draft {draft.get('id') if draft else None}: Problem assembling "
+                                    f"update payload: {e}"
+                                )
+                        headers = events[service_method].get("headers", {})
+                        if events[service_method].get("auth_token"):
+                            headers["Authorization"] = (
+                                f"Bearer {os.getenv(events[service_method]['auth_token'])}"
+                            )
+                        messages_content = [
+                            {
+                                "service_type": self.service_type,
+                                "service_method": service_method,
+                                "request_url": request_url,
+                                "http_method": http_method,
+                                "payload_object": payload_object,
+                                "record_id": (
+                                    record.get("id") if record else None
+                                ),
+                                "draft_id": draft.get("id") if draft else None,
+                                "request_headers": headers,
+                            }
+                        ]
 
-                callback = events[service_method].get("callback")
-                # Because it's called as a link callback from another task,
-                # the signature will receive the result of the prior task
-                # as the first argument.
-                callback_signature = (
-                    callback.s(**shared_arguments) if callback else None
-                )
-
-                # the `link` task call will be executed after the task
-                send_remote_api_update.apply_async(
-                    kwargs=shared_arguments,
-                    link=callback_signature,
-                )
+                        current_queues.queues[
+                            "remote-api-provisioning-events"
+                        ].publish(messages_content)
+                        remote_api_provisioning_triggered.send(
+                            current_app._get_current_object()
+                        )
+                        # current_app.logger.debug(
+                        #     f"Published {self.service_type} {service_method} event "
+                        #     "to queue and emitted remote_api_provisioning_triggered"
+                        #     " signal"
+                        # )
+                        # current_app.logger.debug(pformat(messages_content))
 
     methods = list(set([m for k, v in endpoints.items() for m in v.keys()]))
     component_props = {
@@ -213,14 +274,18 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         "_do_method_action": _do_method_action,
     }
     for m in methods:
+        print(f"Adding method {m} to component")
         component_props[m] = (
             lambda self, identity, service_method=m, **kwargs: self._do_method_action(  # noqa: E501
                 service_method, identity, **kwargs
             )
         )
-
+    service_names = {
+        "rdm_record": "RDMRecord",
+        "community": "Community",
+    }
     RemoteAPIProvisionerComponent = type(
-        "RemoteAPIProvisionerComponent",
+        f"RemoteAPI{service_names[service_type]}ProvisionerComponent",
         (ServiceComponent,),
         component_props,
     )

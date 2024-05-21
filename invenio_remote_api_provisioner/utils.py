@@ -9,34 +9,30 @@
 
 """Utility functions for invenio-remote-api-provisioner."""
 
-import logging
-import os
-from pathlib import Path
+from invenio_accounts.models import User
 
-instance_path = os.environ.get(
-    "INVENIO_INSTANCE_PATH", "/opt/invenio/var/instance"
-)
-if not instance_path:
-    instance_path = Path(__file__).parent.parent
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s:%(levelname)s : %(message)s")
+def get_user_idp_info(user: User) -> dict:
+    """Get the user's IDP information.
 
-log_file_path = (
-    Path(instance_path) / "logs" / "invenio_remote_api_provisioner.log"
-)
+    params:
+        user: The user's InvenioRDM id.
 
-if not log_file_path.exists():
-    log_file_path.parent.mkdir(parents=True, exist_ok=True)
-    log_file_path.touch()
-
-file_handler = logging.handlers.RotatingFileHandler(
-    log_file_path,
-    maxBytes=1000000,
-    backupCount=5,
-)
-file_handler.setFormatter(formatter)
-if logger.hasHandlers():
-    logger.handlers.clear()
-logger.addHandler(file_handler)
+    returns:
+        A dict containing the user's IDP information with
+        the keys "authentication_source" and "id_from_idp".
+        Or an empty dict if the user has no IDP information.
+    """
+    user_info = {}
+    if (
+        user
+        and user.external_identifiers
+        and len(user.external_identifiers) > 0
+    ):
+        user_info.update(
+            {
+                "authentication_source": user.external_identifiers[0].method,
+                "id_from_idp": user.external_identifiers[0].id,
+            }
+        )
+    return user_info
