@@ -274,7 +274,6 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         "_do_method_action": _do_method_action,
     }
     for m in methods:
-        print(f"Adding method {m} to component")
         component_props[m] = (
             lambda self, identity, service_method=m, **kwargs: self._do_method_action(  # noqa: E501
                 service_method, identity, **kwargs
