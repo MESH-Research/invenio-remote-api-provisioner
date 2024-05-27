@@ -110,14 +110,21 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         """
         owner = None
         if with_record_owner:
-            user = current_accounts.datastore.get_user_by_id(identity.id)
-            owner = {
-                "id": identity.id,
-                "email": user.email,
-                "username": user.username,
-            }
-            owner.update(user.user_profile)
-            owner.update(get_user_idp_info(user))
+            if identity.id == "system":
+                owner = {
+                    "id": "system",
+                    "email": "",
+                    "username": "system",
+                }
+            else:
+                user = current_accounts.datastore.get_user_by_id(identity.id)
+                owner = {
+                    "id": identity.id,
+                    "email": user.email,
+                    "username": user.username,
+                }
+                owner.update(user.user_profile)
+                owner.update(get_user_idp_info(user))
 
         if callable(payload):
             payload_object = payload(
