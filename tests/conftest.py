@@ -148,7 +148,9 @@ test_config = {
 
 
 parent_path = Path(__file__).parent.parent
-log_file_path = parent_path / "logs/invenio.log"
+log_file_path = (
+    parent_path / "invenio_api_provisioner" / "logs" / "invenio.log"
+)
 
 if not log_file_path.exists():
     log_file_path.parent.mkdir(parents=True, exist_ok=True)
