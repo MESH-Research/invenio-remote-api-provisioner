@@ -8,7 +8,7 @@
 # LICENSE file for more details.
 
 from pprint import pformat
-from flask import current_app
+from flask import app, current_app
 from invenio_rdm_records.services.communities.components import (
     CommunityServiceComponents as DefaultCommunityComponents,
 )
@@ -70,6 +70,9 @@ def on_remote_api_provisioning_triggered(
             conf = app_obj.config.get("REMOTE_API_PROVISIONER_EVENTS").get(
                 event["service_type"]
             )
+            app_obj.logger.debug("service conf:")
+            app_obj.logger.debug(pformat(conf.keys()))
+            app_obj.logger.debug(f"event request_url: {event['request_url']}")
             endpoint_conf = [
                 v for k, v in conf.items() if k in event["request_url"]
             ][0]
@@ -79,7 +82,7 @@ def on_remote_api_provisioning_triggered(
             # the signature will receive the result of the prior task
             # as the first argument.
             current_app.logger.debug("Callback args:")
-            current_app.logger.debug(event.keys())
+            current_app.logger.debug(pformat(event))
             callback_signature = callback.s(**event) if callback else None
 
             # the `link` task call will be executed after the task

@@ -243,8 +243,9 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                         headers = events[service_method].get("headers", {})
                         if events[service_method].get("auth_token"):
                             headers["Authorization"] = (
-                                f"Bearer {os.getenv(events[service_method]['auth_token'])}"
+                                f"Bearer {events[service_method]['auth_token']}"
                             )
+                            current_app.logger.debug(f"headers: {headers}")
                         messages_content = [
                             {
                                 "service_type": self.service_type,

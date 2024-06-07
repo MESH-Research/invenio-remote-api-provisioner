@@ -63,9 +63,11 @@ def send_remote_api_update(
     """Send a record event update to a remote API."""
 
     with app.app_context():
-        app.logger.debug("Sending remote api update ************")
-        app.logger.info("payload:")
-        app.logger.info(pformat(payload_object))
+        task_logger.debug("Sending remote api update ************")
+        task_logger.info("payload:")
+        task_logger.info(pformat(payload_object))
+        task_logger.info(f"request_url: {request_url}")
+        task_logger.info(f"http_method: {http_method}")
 
         response = requests.request(
             http_method,
@@ -75,26 +77,27 @@ def send_remote_api_update(
             timeout=10,
             headers=request_headers,
         )
+        print(response)
         if response.status_code != 200:
-            app.logger.error(
+            task_logger.error(
                 "Error sending notification (status code"
                 f" {response.status_code})"
             )
-            app.logger.error(response.text)
+            task_logger.error(response.text)
             raise RuntimeError(
                 f"Error sending notification (status code "
                 f"{response.status_code})"
             )
         else:
-            app.logger.info("Notification sent successfully")
-            app.logger.info("response:")
-            app.logger.info(response.json())
-            app.logger.info("-----------------------")
+            task_logger.info("Notification sent successfully")
+            task_logger.info("response:")
+            task_logger.info(response.json())
+            task_logger.info("-----------------------")
 
         try:
             response_string = response.json()
         except ValueError as e:
-            app.logger.error(f"Error decoding response: {e}")
+            task_logger.error(f"Error decoding response: {e}")
             response_string = response.text
 
         return response_string
