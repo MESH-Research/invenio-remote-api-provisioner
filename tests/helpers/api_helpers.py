@@ -43,13 +43,6 @@ def get_user_profile_info(user_id: int = 0, email: str = "") -> dict:
         user = current_accounts.datastore.find_user(email=email)
     if user and user.user_profile:
         profile_info["name"] = user.user_profile.get("full_name")
-        if user.user_profile.get("name_parts"):
-            profile_info["name"] = " ".join(
-                [
-                    user.user_profile["name_parts"].get("first", ""),
-                    user.user_profile["name_parts"].get("last", ""),
-                ]
-            )
         if user.user_profile.get("identifiers", []):
             for i in user.user_profile["identifiers"]:
                 if i["scheme"] == "orcid":
