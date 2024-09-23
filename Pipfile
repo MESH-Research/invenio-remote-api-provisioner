@@ -14,7 +14,7 @@ opensearch-dsl = "*"
 invenio-administration = "*"
 invenio-communities = "*"
 iso639 = "*"
-invenio-remote-user-data = {file = "../invenio-remote-user-data", editable = true}
+invenio-remote-user-data-kcworks = {file = "../invenio-remote-user-data-kcworks", editable = true}
 invenio-group-collections = {file = "../invenio-group-collections", editable = true}
 requests-mock = "*"
 invenio-remote-api-provisioner = {file = ".", editable = true}
