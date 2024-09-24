@@ -20,6 +20,7 @@ classifiers = [
 keywords = ["invenio", "inveniordm", "groups", "social", "research"]
 dependencies = [
     "alembic",
+    "bumpver",
     "click",
     "invenio-app-rdm[opensearch2]<13.0.0",
     "psycopg2",

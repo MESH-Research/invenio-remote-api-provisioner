@@ -15,6 +15,7 @@ iso639 = "*"
 invenio-remote-api-provisioner = {file = ".", editable = true}
 
 [dev-packages]
+bumpver = "*"
 check-manifest = "*"
 docker-services-cli = "*"
 pip-tools = "*"
