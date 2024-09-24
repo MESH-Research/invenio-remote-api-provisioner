@@ -8,7 +8,7 @@
 # LICENSE file for more details.
 
 from pprint import pformat
-from flask import app, current_app
+from flask import current_app
 from invenio_rdm_records.services.communities.components import (
     CommunityServiceComponents as DefaultCommunityComponents,
 )

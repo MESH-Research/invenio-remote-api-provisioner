@@ -129,6 +129,6 @@ application when a payload function fails.
 
 """
 
-__version__ = "1.0.0a"
+__version__ = "0.1.0.dev1"
 
 __all__ = ("__version__", "InvenioRemoteAPIProvisioner")

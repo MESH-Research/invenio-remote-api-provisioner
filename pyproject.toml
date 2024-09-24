@@ -1,19 +1,16 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "invenio-remote-api-provisioner"
-version = "2023.07.05"
-description = "Provides social groups infrastructure for InvenioRDM"
+version = "0.1.0.dev1"
+description = "A generic framework for provisioning external APIs for InvenioRDM events relating to records and communities"
 readme = "README.md"
 authors = [{ name = "MESH Research", email = "scottia4@msu.edu" }]
 license = { file = "LICENSE" }
 classifiers = [
     "License :: OSI Approved :: MIT License",
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.12",
     "Environment :: Web Environment",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
@@ -22,22 +19,31 @@ classifiers = [
 ]
 keywords = ["invenio", "inveniordm", "groups", "social", "research"]
 dependencies = [
-    "click>=7.0"
+    "alembic",
+    "click",
+    "invenio-app-rdm[opensearch2]<13.0.0",
+    "psycopg2",
+    "opensearch-dsl",
+    "invenio-administration",
+    "invenio-communities",
+    "iso639",
 ]
 requires-python = ">=3.9"
 
 [project.optional-dependencies]
 dev = [
     "check-manifest",
+    "docker-services-cli",
     "pip-tools",
     "pytest>=7.3.2",
+    "pytest-invenio",
     "pytest-runner",
+    "requests-mock",
 ]
 
 
 [project.urls]
 Homepage = "https://github.com/MESH-Research/invenio-remote-api-provisioner"
-
 
 [tool.pytest.ini_options]
 addopts = "--doctest-glob='*.rst' --doctest-modules --ignore=tests/helpers"
@@ -54,3 +60,56 @@ invenio_remote_api_provisioner = "invenio_remote_api_provisioner.tasks"
 
 [project.entry-points."invenio_queues.queues"]
 invenio_remote_api_provisioner = "invenio_remote_api_provisioner.queues:declare_queues"
+
+[tool.check-manifest]
+ignore = [
+  "PKG-INFO",
+  ".egg-info",
+  ".egg-info/*",
+  "setup.cfg",
+  ".DS_Store",
+  ".hgtags",
+  ".hgsigs",
+  ".hgignore",
+  ".gitignore",
+  ".bzrignore",
+  ".gitattributes",
+  ".github/*",
+  ".travis.yml",
+  "Jenkinsfile",
+  "* .mo",
+  "dist/*",
+  "build/*",
+  "invenio_record_importer_kcworks/dependencies/*",
+]
+
+[tool.bumpver]
+current_version = "0.1.0.dev1"
+version_pattern = "MAJOR.MINOR.PATCH[-TAGNUM]"
+commit_message = "bump version {old_version} -> {new_version}"
+tag_message = "{new_version}"
+tag_scope = "default"
+pre_commit_hook = ""
+post_commit_hook = ""
+commit = true
+tag = true
+push = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'version = "{version}"',
+    'current_version = "{version}"',
+]
+"README.md" = [
+    "Version {version}",
+]
+"VERSION" = [
+    '^"{version}"',
+]
+"invenio_record_importer_kcworks/__init__.py" = [
+    '^__version__ = "{version}"',
+]
+
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"

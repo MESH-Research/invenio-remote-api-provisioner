@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2023 MESH Research
+# Copyright (C) 2024 MESH Research
 #
 # invenio-subjects-fast is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License; see LICENSE file for more
@@ -18,6 +18,8 @@ include *.rst
 include *.sh
 include *.txt
 include Pipfile
+include VERSION
+include README.md
 exclude .DS_Store
 recursive-include tests .gitkeep
 recursive-include tests *.py

@@ -1,7 +1,9 @@
 Invenio Remote API Provisioner
 ==============================
 
-This extension provides a generic framework for provisioning external APIs with messages when record events occur in InvenioRDM. It allows for messages custom messages to be sent to external API endpoints when specific operations are performed on deposit records or community records.
+Version 0.1.0-dev1
+
+This extension provides a generic framework for provisioning external APIs with messages when record events occur in InvenioRDM. It allows for custom messages to be sent to external API endpoints when specific operations are performed on deposit records or community records.
 
 The extension works by injecting two service components, one into RDMRecordService and one into CommunityService.
 
@@ -131,3 +133,25 @@ Provides an "invenio-remote-api-provisioner" extension to the `invenio` (Flask) 
 ## Service Component
 
 Adds a service component to the RDMRecordService service class (in invenio-rdm-records). A service component like this is a class that provides methods to be run during the performance of the record service's core operations. In this case, the RemoteAPIProvisionerComponent class injects its logic into following methods of the RDMRecordService:
+
+## Developing this extension
+
+### Versioning
+
+This project uses [Semantic Versioning](https://semver.org/) to manage versioning.
+
+#### Updating the version number
+
+The version number is managed by bumpver.
+
+To update the version number, run the following command:
+
+```bash
+bumpver update --<patch/minor/major/tag-num>
+```
+
+
+
+
+
+
