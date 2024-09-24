@@ -29,6 +29,9 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# virtual env
+.python-version
+
 # logs
 *.log
 invenio_remote_api_provisioner/logs/*
