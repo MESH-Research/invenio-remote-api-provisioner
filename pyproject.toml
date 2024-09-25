@@ -19,20 +19,17 @@ classifiers = [
 ]
 keywords = ["invenio", "inveniordm", "groups", "social", "research"]
 dependencies = [
-    "alembic",
-    "bumpver",
     "click",
     "invenio-app-rdm[opensearch2]<13.0.0",
     "psycopg2",
     "opensearch-dsl",
-    "invenio-administration",
-    "invenio-communities",
     "iso639",
 ]
 requires-python = ">=3.9"
 
 [project.optional-dependencies]
 dev = [
+    "bumpver",
     "check-manifest",
     "docker-services-cli",
     "pip-tools",
