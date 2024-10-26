@@ -147,7 +147,6 @@ def send_remote_api_update(
     record: dict = {},
     draft: dict = {},
     endpoint: str = "",
-    event_config: dict = {},
     service_type: str = "",
     service_method: str = "",
     **kwargs,
@@ -155,6 +154,13 @@ def send_remote_api_update(
     """Send a record event update to a remote API."""
 
     with app.app_context():
+
+        event_config = (
+            app.config.get("REMOTE_API_PROVISIONER_EVENTS", {})
+            .get(service_type, {})
+            .get(endpoint, {})
+            .get(service_method, {})
+        )
 
         payload_object = None
         if event_config.get("payload"):

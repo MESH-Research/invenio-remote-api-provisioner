@@ -134,7 +134,6 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                                 record=record,
                                 draft=draft,
                                 endpoint=endpoint,
-                                event_config=event_config,
                                 service_type=self.service_type,
                                 service_method=service_method,
                             )
