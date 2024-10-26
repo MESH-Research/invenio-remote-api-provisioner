@@ -164,6 +164,9 @@ def send_remote_api_update(
         app.logger.warning(f"Service type: {service_type}")
         app.logger.warning(f"Endpoint: {endpoint}")
         app.logger.warning(f"Service method: {service_method}")
+        app.logger.warning(f"Identity: {identity}")
+        app.logger.warning(f"Record: {record}")
+        app.logger.warning(f"Draft: {draft}")
 
         payload_object = None
         if event_config.get("payload"):
