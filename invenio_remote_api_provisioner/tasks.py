@@ -142,6 +142,7 @@ def get_request_url(identity, endpoint, record, draft, event_config, **kwargs):
     retry_kwargs={"max_retries": 5},
 )
 def send_remote_api_update(
+    self,
     identity: dict = {},
     record: dict = {},
     draft: dict = {},
