@@ -166,7 +166,9 @@ def send_remote_api_update(
     is_draft: bool = False,
     is_deleted: bool = False,
     parent: Optional[dict] = None,
-    versions: Optional[list] = None,
+    latest_version_index: Optional[int] = None,
+    latest_version_id: Optional[str] = None,
+    current_version_index: Optional[int] = None,
     draft: Optional[dict] = None,
     endpoint: str = "",
     service_type: str = "",
@@ -197,7 +199,14 @@ def send_remote_api_update(
     Note: We add the following parameter values to the record dictionary
     when it is passed on to other functions by this task. These are
     properties of the record object that are not part of the record's
-    serialization received by this task (via celery).
+    serialization received by this task (via celery):
+        - is_published
+        - is_draft
+        - is_deleted
+        - parent
+        - latest_version_index
+        - latest_version_id
+        - current_version_index
 
     Returns:
         tuple[Response, Union[dict, str, int, list, None]]: The response from
@@ -208,7 +217,9 @@ def send_remote_api_update(
     record["is_draft"] = is_draft
     record["is_deleted"] = is_deleted
     record["parent"] = parent
-    record["versions"] = versions
+    record["latest_version_index"] = latest_version_index
+    record["latest_version_id"] = latest_version_id
+    record["current_version_index"] = current_version_index
 
     with app.app_context():
 
