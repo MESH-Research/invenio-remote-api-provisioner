@@ -85,12 +85,13 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         **kwargs,
     ):
         current_app.logger.warning("Service method: %s", service_method)
-        current_app.logger.debug("record:")
-        current_app.logger.debug(record)
-        current_app.logger.debug("data:")
-        current_app.logger.debug(kwargs.get("data"))
-        current_app.logger.debug(kwargs.keys())
+        current_app.logger.warning("record:")
+        current_app.logger.warning(record)
+        current_app.logger.warning("data:")
+        current_app.logger.warning(kwargs.get("data"))
+        current_app.logger.warning(kwargs.keys())
         for endpoint, events in self.endpoints.items():
+            current_app.logger.warning("Endpoint: %s", endpoint)
             if service_method in events.keys():
                 event_config = events[service_method]
                 timing_field = event_config.get("timing_field")
