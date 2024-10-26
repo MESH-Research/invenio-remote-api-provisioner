@@ -264,7 +264,7 @@ def send_remote_api_update(
                 task_logger.error(
                     f"Could not send "
                     f"{service_type} {service_method} "
-                    f"update for record {record.id}: Problem assembling "
+                    f"update for record {record["id"]}: Problem assembling "
                     f"update payload: {e}"
                 )
 
@@ -282,7 +282,7 @@ def send_remote_api_update(
         task_logger.info(f"request_url: {request_url}")
         task_logger.info(f"http_method: {http_method}")
         task_logger.info(f"request_headers: {request_headers}")
-        task_logger.info(f"record_id: {record.id}")
+        task_logger.info(f"record_id: {record['id']}")
         task_logger.info(f"draft_id: {draft.get('id')}")
 
         response = requests.request(
@@ -326,7 +326,7 @@ def send_remote_api_update(
                 service_method=service_method,
                 request_url=request_url,
                 payload_object=payload_object,
-                record_id=record.id,
+                record_id=record["id"],
                 draft_id=draft.get("id"),
                 **kwargs,
             )
