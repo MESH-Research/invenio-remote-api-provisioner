@@ -22,7 +22,7 @@ import os
 from pathlib import Path
 from pprint import pformat
 import requests
-
+from typing import Optional, Union
 from .utils import get_user_idp_info
 
 task_logger = get_task_logger(__name__)
@@ -47,8 +47,8 @@ task_logger.addHandler(file_handler)
 
 def get_payload_object(
     identity: Identity,
-    payload: dict | callable,
-    record: dict = {},
+    payload: Union[dict, callable],
+    record: Optional[RDMRecord] = None,
     with_record_owner: bool = False,
     **kwargs,
 ) -> dict:
@@ -160,8 +160,8 @@ def get_request_url(
 def send_remote_api_update(
     self,
     identity_id: str = "",
-    record: RDMRecord = None,
-    draft: RDMDraft = None,
+    record: Optional[RDMRecord] = None,
+    draft: Optional[RDMDraft] = None,
     endpoint: str = "",
     service_type: str = "",
     service_method: str = "",
