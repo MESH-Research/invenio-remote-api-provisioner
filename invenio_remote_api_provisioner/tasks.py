@@ -13,7 +13,10 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from flask import Response, current_app as app
+from invenio_access.utils import get_identity
 from invenio_accounts import current_accounts
+from invenio_accounts.models import Identity
+from invenio_rdm_records.records.api import RDMRecord, RDMDraft
 import logging
 import os
 from pathlib import Path
@@ -43,16 +46,16 @@ task_logger.addHandler(file_handler)
 
 
 def get_payload_object(
-    identity,
-    payload,
-    record=None,
-    with_record_owner=False,
+    identity: Identity,
+    payload: dict | callable,
+    record: dict = {},
+    with_record_owner: bool = False,
     **kwargs,
-):
+) -> dict:
     """Get the payload object for the notification.
 
     Parameters:
-        identity (dict): The identity of the user performing
+        identity (str): The identity of the user performing
                             the service operation.
         record (dict): The record returned from the service method.
         payload (dict or callable): The payload object or a callable
@@ -71,16 +74,16 @@ def get_payload_object(
     """
     owner = None
     if with_record_owner:
-        if identity["id"] == "system":
+        if identity.id == "system":
             owner = {
                 "id": "system",
                 "email": "",
                 "username": "system",
             }
         else:
-            user = current_accounts.datastore.get_user_by_id(identity["id"])
+            user = current_accounts.datastore.get_user_by_id(identity.id)
             owner = {
-                "id": identity["id"],
+                "id": identity.id,
                 "email": user.email,
                 "username": user.username,
             }
@@ -104,7 +107,14 @@ def get_payload_object(
         return payload_object
 
 
-def get_http_method(identity, record, draft, event_config, **kwargs):
+def get_http_method(
+    identity: Identity,
+    record: RDMRecord,
+    draft: RDMDraft,
+    event_config: dict,
+    **kwargs,
+) -> str:
+
     if callable(event_config["http_method"]):
         http_method = event_config["http_method"](
             identity, record=record, draft=draft, **kwargs
@@ -114,14 +124,21 @@ def get_http_method(identity, record, draft, event_config, **kwargs):
     return http_method
 
 
-def get_headers(event_config):
+def get_headers(event_config: dict) -> dict:
     headers = event_config.get("headers", {})
     if event_config.get("auth_token"):
         headers["Authorization"] = f"Bearer {event_config['auth_token']}"
     return headers
 
 
-def get_request_url(identity, endpoint, record, draft, event_config, **kwargs):
+def get_request_url(
+    identity: Identity,
+    endpoint: str,
+    record: RDMRecord,
+    draft: RDMDraft,
+    event_config: dict,
+    **kwargs,
+) -> str:
     if event_config.get("url_factory"):
         request_url = event_config["url_factory"](
             identity, record=record, draft=draft, **kwargs
@@ -142,9 +159,9 @@ def get_request_url(identity, endpoint, record, draft, event_config, **kwargs):
 )
 def send_remote_api_update(
     self,
-    identity: dict = {},
-    record: dict = {},
-    draft: dict = {},
+    identity_id: str = "",
+    record: RDMRecord = None,
+    draft: RDMDraft = None,
     endpoint: str = "",
     service_type: str = "",
     service_method: str = "",
@@ -153,6 +170,9 @@ def send_remote_api_update(
     """Send a record event update to a remote API."""
 
     with app.app_context():
+
+        user_object = current_accounts.datastore.get_user_by_id(identity_id)
+        identity = get_identity(user_object)
 
         event_config = (
             app.config.get("REMOTE_API_PROVISIONER_EVENTS", {})
@@ -164,7 +184,7 @@ def send_remote_api_update(
         app.logger.warning(f"Service type: {service_type}")
         app.logger.warning(f"Endpoint: {endpoint}")
         app.logger.warning(f"Service method: {service_method}")
-        app.logger.warning(f"Identity: {identity}")
+        app.logger.warning(f"Identity: {identity_id}")
         app.logger.warning(f"Record: {type(record)}")
         app.logger.warning(f"Draft: {type(draft)}")
 
@@ -172,7 +192,7 @@ def send_remote_api_update(
         if event_config.get("payload"):
             try:
                 payload_object = get_payload_object(
-                    identity,
+                    identity_id,
                     event_config["payload"],
                     record=record,
                     draft=draft,

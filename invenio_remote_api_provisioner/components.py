@@ -12,10 +12,16 @@
 
 import arrow
 from flask import current_app
+from invenio_accounts.models import Identity
 from invenio_drafts_resources.services.records.components import (
     ServiceComponent,
 )
-from invenio_records_resources.services.uow import TaskOp, unit_of_work
+from invenio_rdm_records.records.api import RDMRecord, RDMDraft
+from invenio_records_resources.services.uow import (
+    TaskOp,
+    unit_of_work,
+    UnitOfWork,
+)
 
 from .tasks import send_remote_api_update
 
@@ -77,11 +83,11 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
     @unit_of_work()
     def _do_method_action(
         self,
-        service_method,
-        identity,
-        record=None,
-        draft=None,
-        uow=None,
+        service_method: str,
+        identity: Identity,
+        record: RDMRecord,
+        draft: RDMDraft,
+        uow: UnitOfWork = None,
         **kwargs,
     ):
         current_app.logger.warning("Service method: %s", service_method)
@@ -131,7 +137,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                         uow.register(
                             TaskOp(
                                 send_remote_api_update,
-                                identity=identity,
+                                identity_id=identity.id,
                                 record=record,
                                 draft=draft,
                                 endpoint=endpoint,
