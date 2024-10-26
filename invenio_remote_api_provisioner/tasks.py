@@ -71,16 +71,16 @@ def get_payload_object(
     """
     owner = None
     if with_record_owner:
-        if identity.id == "system":
+        if identity["id"] == "system":
             owner = {
                 "id": "system",
                 "email": "",
                 "username": "system",
             }
         else:
-            user = current_accounts.datastore.get_user_by_id(identity.id)
+            user = current_accounts.datastore.get_user_by_id(identity["id"])
             owner = {
-                "id": identity.id,
+                "id": identity["id"],
                 "email": user.email,
                 "username": user.username,
             }
