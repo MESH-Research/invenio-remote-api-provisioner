@@ -13,12 +13,14 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from flask import Response, current_app as app
-from invenio_queues import current_queues
+from invenio_accounts import current_accounts
 import logging
 import os
 from pathlib import Path
 from pprint import pformat
 import requests
+
+from .utils import get_user_idp_info
 
 task_logger = get_task_logger(__name__)
 
@@ -40,6 +42,97 @@ if task_logger.hasHandlers():
 task_logger.addHandler(file_handler)
 
 
+def get_payload_object(
+    self,
+    identity,
+    payload,
+    record=None,
+    with_record_owner=False,
+    **kwargs,
+):
+    """Get the payload object for the notification.
+
+    Parameters:
+        identity (dict): The identity of the user performing
+                            the service operation.
+        record (dict): The record returned from the service method.
+        payload (dict or callable): The payload object or a callable
+                                    that returns the payload object.
+        with_record_owner (bool): Include the record owner in the
+                                    payload object. Requires an extra
+                                    database query to get the user. If
+                                    true then the payload callable
+                                    receives the record owner as a
+                                    keyword argument.
+        **kwargs: Any additional keyword arguments passed through
+                    from the parent service method. This includes
+                    ``errors`` where there are operation problems.
+                    See this extension's README for the service
+                    method details.
+    """
+    owner = None
+    if with_record_owner:
+        if identity.id == "system":
+            owner = {
+                "id": "system",
+                "email": "",
+                "username": "system",
+            }
+        else:
+            user = current_accounts.datastore.get_user_by_id(identity.id)
+            owner = {
+                "id": identity.id,
+                "email": user.email,
+                "username": user.username,
+            }
+            owner.update(user.user_profile)
+            owner.update(get_user_idp_info(user))
+
+    if callable(payload):
+        payload_object = payload(
+            identity, record=record, owner=owner, **kwargs
+        )
+    elif isinstance(payload, dict):
+        payload_object = payload
+    else:
+        raise ValueError(
+            "Event payload must be a dict or a callable that returns a"
+            " dict."
+        )
+    if "internal_error" in payload_object.keys():
+        raise RuntimeError(payload_object["internal_error"])
+    else:
+        return payload_object
+
+
+def get_http_method(identity, record, draft, event_config, **kwargs):
+    if callable(event_config["http_method"]):
+        http_method = event_config["http_method"](
+            identity, record=record, draft=draft, **kwargs
+        )
+    else:
+        http_method = event_config["http_method"]
+    return http_method
+
+
+def get_headers(event_config):
+    headers = event_config.get("headers", {})
+    if event_config.get("auth_token"):
+        headers["Authorization"] = f"Bearer {event_config['auth_token']}"
+    return headers
+
+
+def get_request_url(identity, endpoint, record, draft, event_config, **kwargs):
+    if event_config.get("url_factory"):
+        request_url = event_config["url_factory"](
+            identity, record=record, draft=draft, **kwargs
+        )
+        task_logger.debug("Request URL: %s", request_url)
+    else:
+        request_url = endpoint
+    return request_url
+
+
 # TODO: Make retries configurable
 @shared_task(
     bind=True,
@@ -49,25 +142,58 @@ task_logger.addHandler(file_handler)
     retry_kwargs={"max_retries": 5},
 )
 def send_remote_api_update(
-    self,
+    identity: dict = {},
+    record: dict = {},
+    draft: dict = {},
+    endpoint: str = "",
+    event_config: dict = {},
     service_type: str = "",
     service_method: str = "",
-    request_headers: dict = {},
-    request_url: str = "",
-    http_method: str = "",
-    payload_object: dict = {},
-    record_id: str = "",
-    draft_id: str = "",
     **kwargs,
 ) -> Response:
     """Send a record event update to a remote API."""
 
     with app.app_context():
+
+        payload_object = None
+        if event_config.get("payload"):
+            try:
+                payload_object = get_payload_object(
+                    identity,
+                    event_config["payload"],
+                    record=record,
+                    draft=draft,
+                    with_record_owner=event_config.get(
+                        "with_record_owner", False
+                    ),
+                    **kwargs,
+                )
+                # current_app.logger.debug("Payload object:")
+                # current_app.logger.debug(pformat(payload_object))
+            except (RuntimeError, ValueError) as e:
+                task_logger.error(
+                    f"Could not send "
+                    f"{service_type} {service_method} "
+                    f"update for record {record.id}: Problem assembling "
+                    f"update payload: {e}"
+                )
+
+        request_url = get_request_url(
+            identity, endpoint, record, draft, event_config, **kwargs
+        )
+        http_method = get_http_method(
+            identity, record, draft, event_config, **kwargs
+        )
+        request_headers = get_headers(event_config)
+
         task_logger.debug("Sending remote api update ************")
         task_logger.info("payload:")
         task_logger.info(pformat(payload_object))
         task_logger.info(f"request_url: {request_url}")
         task_logger.info(f"http_method: {http_method}")
+        task_logger.info(f"request_headers: {request_headers}")
+        task_logger.info(f"record_id: {record.id}")
+        task_logger.info(f"draft_id: {draft.get('id')}")
 
         response = requests.request(
             http_method,
@@ -99,5 +225,19 @@ def send_remote_api_update(
         except ValueError as e:
             task_logger.error(f"Error decoding response: {e}")
             response_string = response.text
+
+        callback = event_config.get("callback")
+        if callback:
+            task_logger.info("Calling callback")
+            callback(
+                response_json=response_string,
+                service_type=service_type,
+                service_method=service_method,
+                request_url=request_url,
+                payload_object=payload_object,
+                record_id=record.id,
+                draft_id=draft.get("id"),
+                **kwargs,
+            )
 
         return response_string

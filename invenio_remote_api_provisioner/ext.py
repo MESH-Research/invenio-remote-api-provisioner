@@ -28,6 +28,8 @@ from .components import (
 from . import config
 
 
+# TODO: This use of the messaging queue is deprecated. We now call the task
+# directly from the service component (via the unit of work).
 def on_remote_api_provisioning_triggered(
     app_obj,
 ):
