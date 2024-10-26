@@ -43,7 +43,6 @@ task_logger.addHandler(file_handler)
 
 
 def get_payload_object(
-    self,
     identity,
     payload,
     record=None,
