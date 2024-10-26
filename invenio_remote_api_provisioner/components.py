@@ -12,7 +12,7 @@
 
 import arrow
 from flask import current_app
-from invenio_accounts.models import Identity
+from flask_principal import Identity
 from invenio_drafts_resources.services.records.components import (
     ServiceComponent,
 )

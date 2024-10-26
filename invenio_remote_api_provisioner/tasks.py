@@ -13,9 +13,9 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from flask import Response, current_app as app
+from flask_principal import Identity
 from invenio_access.utils import get_identity
 from invenio_accounts import current_accounts
-from invenio_accounts.models import Identity
 from invenio_rdm_records.records.api import RDMRecord, RDMDraft
 import logging
 import os
