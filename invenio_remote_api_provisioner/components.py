@@ -130,7 +130,6 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                         uow.register(
                             TaskOp(
                                 send_remote_api_update,
-                                identity=identity,
                                 record=record,
                                 draft=draft,
                                 endpoint=endpoint,
