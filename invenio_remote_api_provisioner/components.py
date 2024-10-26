@@ -15,7 +15,7 @@ from flask import current_app
 from invenio_drafts_resources.services.records.components import (
     ServiceComponent,
 )
-from invenio_records_resources.services.uow import TaskOp
+from invenio_records_resources.services.uow import TaskOp, unit_of_work
 
 from .tasks import send_remote_api_update
 
@@ -74,6 +74,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
     endpoints = all_endpoints.get(service_type, {})
     service_type = service_type
 
+    @unit_of_work()
     def _do_method_action(
         self,
         service_method,
@@ -215,6 +216,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         "endpoints": endpoints,
         "_do_method_action": _do_method_action,
     }
+
     for m in methods:
         component_props[m] = (
             lambda self, identity, service_method=m, **kwargs: self._do_method_action(  # noqa: E501
