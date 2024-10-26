@@ -14,6 +14,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from flask import Response, current_app as app
 from flask_principal import Identity
+from invenio_access.permissions import system_identity
 from invenio_access.utils import get_identity
 from invenio_accounts import current_accounts
 from invenio_rdm_records.records.api import RDMRecord, RDMDraft
@@ -171,8 +172,13 @@ def send_remote_api_update(
 
     with app.app_context():
 
-        user_object = current_accounts.datastore.get_user_by_id(identity_id)
-        identity = get_identity(user_object)
+        if identity_id != "system":
+            user_object = current_accounts.datastore.get_user_by_id(
+                identity_id
+            )
+            identity = get_identity(user_object)
+        else:
+            identity = system_identity
 
         event_config = (
             app.config.get("REMOTE_API_PROVISIONER_EVENTS", {})
