@@ -49,7 +49,7 @@ task_logger.addHandler(file_handler)
 def get_payload_object(
     identity: Identity,
     payload: Union[dict, callable],
-    record: Optional[RDMRecord] = None,
+    record: dict = {},
     with_record_owner: bool = False,
     **kwargs,
 ) -> dict:
@@ -264,7 +264,7 @@ def send_remote_api_update(
                 task_logger.error(
                     f"Could not send "
                     f"{service_type} {service_method} "
-                    f"update for record {record["id"]}: Problem assembling "
+                    f"update for record {record['id']}: Problem assembling "
                     f"update payload: {e}"
                 )
 
