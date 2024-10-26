@@ -326,8 +326,8 @@ def send_remote_api_update(
                 service_method=service_method,
                 request_url=request_url,
                 payload_object=payload_object,
-                record_id=record["id"],
-                draft_id=draft.get("id"),
+                record=record,
+                draft=draft,
                 **kwargs,
             )
 
