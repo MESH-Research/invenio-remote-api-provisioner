@@ -161,9 +161,13 @@ def get_request_url(
 def send_remote_api_update(
     self,
     identity_id: str = "",
-    record: Optional[RDMRecord] = None,
+    record: dict = {},
     is_published: bool = False,
-    draft: Optional[RDMDraft] = None,
+    is_draft: bool = False,
+    is_deleted: bool = False,
+    parent: Optional[dict] = None,
+    versions: Optional[list] = None,
+    draft: Optional[dict] = None,
     endpoint: str = "",
     service_type: str = "",
     service_method: str = "",
@@ -190,8 +194,10 @@ def send_remote_api_update(
         **kwargs: Any additional keyword arguments passed through
                     from the parent service method.
 
-    Note: We add the ``is_published`` parameter to the record dictionary
-    when it is passed on to other functions by this task.
+    Note: We add the following parameter values to the record dictionary
+    when it is passed on to other functions by this task. These are
+    properties of the record object that are not part of the record's
+    serialization received by this task (via celery).
 
     Returns:
         tuple[Response, Union[dict, str, int, list, None]]: The response from
@@ -199,6 +205,10 @@ def send_remote_api_update(
     """
 
     record["is_published"] = is_published
+    record["is_draft"] = is_draft
+    record["is_deleted"] = is_deleted
+    record["parent"] = parent
+    record["versions"] = versions
 
     with app.app_context():
 
