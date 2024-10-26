@@ -198,7 +198,7 @@ def send_remote_api_update(
         if event_config.get("payload"):
             try:
                 payload_object = get_payload_object(
-                    identity_id,
+                    identity,
                     event_config["payload"],
                     record=record,
                     draft=draft,
