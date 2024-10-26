@@ -162,13 +162,43 @@ def send_remote_api_update(
     self,
     identity_id: str = "",
     record: Optional[RDMRecord] = None,
+    is_published: bool = False,
     draft: Optional[RDMDraft] = None,
     endpoint: str = "",
     service_type: str = "",
     service_method: str = "",
     **kwargs,
-) -> Response:
-    """Send a record event update to a remote API."""
+) -> tuple[Response, Union[dict, str, int, list, None]]:
+    """Send a record event update to a remote API.
+
+    Parameters:
+        identity_id (str): The ID of the user performing
+                            the service operation.
+        record (RDMRecord): The record to be updated, dumped to a
+                            dictionary.
+        is_published (bool): Whether the record is published. This is
+                            retrieved from the record object before it
+                            is serialized for this celery task, since
+                            the property is not part of the record's
+                            serialization.
+        draft (RDMDraft): The draft to be updated.
+        endpoint (str): The endpoint to send the request to.
+        service_type (str): The type of service whose method triggers
+                            this task. (One of "rdm_record" or "community".)
+        service_method (str): The name of the service method that triggers
+                            this task.
+        **kwargs: Any additional keyword arguments passed through
+                    from the parent service method.
+
+    Note: We add the ``is_published`` parameter to the record dictionary
+    when it is passed on to other functions by this task.
+
+    Returns:
+        tuple[Response, Union[dict, str, int, list, None]]: The response from
+        the remote API and the result of the callback function (if any).
+    """
+
+    record["is_published"] = is_published
 
     with app.app_context():
 
@@ -266,9 +296,10 @@ def send_remote_api_update(
             response_string = response.text
 
         callback = event_config.get("callback")
+        callback_result = None
         if callback:
             task_logger.info("Calling callback")
-            callback(
+            callback_result = callback(
                 response_json=response_string,
                 service_type=service_type,
                 service_method=service_method,
@@ -279,4 +310,4 @@ def send_remote_api_update(
                 **kwargs,
             )
 
-        return response_string
+        return response, callback_result

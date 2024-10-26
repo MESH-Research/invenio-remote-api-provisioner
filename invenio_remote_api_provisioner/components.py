@@ -22,6 +22,7 @@ from invenio_records_resources.services.uow import (
     unit_of_work,
     UnitOfWork,
 )
+from pprint import pformat
 
 from .tasks import send_remote_api_update
 
@@ -66,10 +67,18 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
     and a dictionary of the method properties as the value.
 
     The method properties dictionary has the following keys
-    - method: the HTTP method to use
-    - payload: the payload to send
-    - with_record_owner: include the record owner in the payload
-    - callback: a callback function to update the record or draft
+    - method: the HTTP method to use or a callable that returns the
+              method string
+    - payload: the payload dictionary to send or a callable that returns
+              the payload dictionary
+    - with_record_owner: a boolean to include the record owner in the
+                         payload
+    - callback: a callback function to update the record or draft after
+                the remote API call is successful
+    - url_factory: a callable that returns the URL string
+    - auth_token: the authentication token to use for the request
+    - timing_field: the name of the custom field that stores the last
+                      update date/time of the record
 
     The component class is responsible for sending the message to the
     endpoint, handling any response, and calling any callback function
@@ -134,11 +143,13 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                         )
                         current_app.logger.info(last_update_dt)
                     else:
+                        current_app.logger.warning(pformat(dir(record)))
                         uow.register(
                             TaskOp(
                                 send_remote_api_update,
                                 identity_id=identity.id,
                                 record=record,
+                                is_published=record.is_published,
                                 draft=draft,
                                 endpoint=endpoint,
                                 service_type=self.service_type,
