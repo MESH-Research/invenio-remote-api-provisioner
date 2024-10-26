@@ -84,7 +84,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         uow=None,
         **kwargs,
     ):
-        current_app.logger.debug("Service method: %s", service_method)
+        current_app.logger.warning("Service method: %s", service_method)
         current_app.logger.debug("record:")
         current_app.logger.debug(record)
         current_app.logger.debug("data:")
