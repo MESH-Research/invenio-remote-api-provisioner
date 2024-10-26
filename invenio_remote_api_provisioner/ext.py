@@ -154,13 +154,14 @@ class InvenioRemoteAPIProvisioner(object):
             community_component,
         ]
 
-    def init_listeners(self, app):
-        """Initialize listeners for the extension.
+    # TODO: Remove this listener for deprecated messaging queue.
+    # def init_listeners(self, app):
+    #     """Initialize listeners for the extension.
 
-        Args:
-            app (_type_): _description_
-        """
+    #     Args:
+    #         app (_type_): _description_
+    #     """
 
-        remote_api_provisioning_triggered.connect(
-            on_remote_api_provisioning_triggered, app
-        )
+    #     remote_api_provisioning_triggered.connect(
+    #         on_remote_api_provisioning_triggered, app
+    #     )

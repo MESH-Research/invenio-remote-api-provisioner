@@ -17,6 +17,8 @@ from invenio_drafts_resources.services.records.components import (
 )
 from invenio_records_resources.services.uow import TaskOp
 
+from .tasks import send_remote_api_update
+
 # from .signals import remote_api_provisioning_triggered
 # from .utils import get_user_idp_info
 
@@ -124,14 +126,17 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                         )
                         current_app.logger.info(last_update_dt)
                     else:
-                        TaskOp.send_remote_api_update(
-                            identity=identity,
-                            record=record,
-                            draft=draft,
-                            endpoint=endpoint,
-                            event_config=event_config,
-                            service_type=self.service_type,
-                            service_method=service_method,
+                        uow.register(
+                            TaskOp(
+                                send_remote_api_update,
+                                identity=identity,
+                                record=record,
+                                draft=draft,
+                                endpoint=endpoint,
+                                event_config=event_config,
+                                service_type=self.service_type,
+                                service_method=service_method,
+                            )
                         )
 
                         # FIXME: We've deprecated this code using a queue
