@@ -319,6 +319,22 @@ def send_remote_api_update(
         callback = event_config.get("callback")
         callback_result = None
         if callback:
+            callback_record = record
+            callback_draft = draft
+            for k in [
+                "is_published",
+                "is_draft",
+                "is_deleted",
+                "parent",
+                "latest_version_index",
+                "latest_version_id",
+                "current_version_index",
+            ]:
+                if k in record.keys():
+                    del callback_record[k]
+                if k in draft.keys():
+                    del callback_draft[k]
+
             task_logger.info("Calling callback")
             callback_result = callback(
                 response_json=response_string,
@@ -326,8 +342,8 @@ def send_remote_api_update(
                 service_method=service_method,
                 request_url=request_url,
                 payload_object=payload_object,
-                record=record,
-                draft=draft,
+                record=callback_record,
+                draft=callback_draft,
                 **kwargs,
             )
 
