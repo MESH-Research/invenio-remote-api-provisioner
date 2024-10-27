@@ -38,14 +38,21 @@ def on_remote_api_provisioning_triggered(
     via an event queue to avoid detached instance errors.
 
     Events consumed from the remote-api-provisioning-events queue
-    are processed here. The event is a dictionary of strings with the
+    are processed here. The event is a dictionary with the
     following keys:
-        service_type:
-        service_method:
-        request_url:
-        payload:
-        record_id:
-        draft_id:
+
+    - "response_json" (dict): The JSON response from the external API
+    - "service_type" (str): The type of service that was called
+    - "service_method" (str): The method of the service that was called
+    - "request_url" (str): The URL that was requested of the external API
+    - "payload_object" (dict): The JSON payload that was sent to the external
+        API
+    - "record" (dict): The new record that is being created for publication
+        with the data added by other service components prior to this one
+    - "draft" (dict): The draft that was being published, prior to
+        publication (as a dictionary)
+    - along with any other keyword arguments that are passed to the
+        component method
     """
     current_app.logger.debug("Received remote_api_provisioning_triggered ****")
 
@@ -53,7 +60,9 @@ def on_remote_api_provisioning_triggered(
         "remote-api-provisioning-events"
     ].consume():
         current_app.logger.debug(
-            f"Consumed event: {event['service_type']} {event['service_method']} {event['record_id']}  ****"
+            f"Consumed event: {event['service_type']} "
+            f"{event['service_method']} "
+            f"{event['record']['id']}  ****"
         )
 
         if os.getenv("MOCK_SIGNAL_SUBSCRIBER"):  # for unit tests
