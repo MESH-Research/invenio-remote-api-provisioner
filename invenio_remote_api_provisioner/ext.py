@@ -28,19 +28,14 @@ from .components import (
 from . import config
 
 
-# TODO: This use of the messaging queue is deprecated. We now call the task
-# directly from the service component (via the unit of work).
 def on_remote_api_provisioning_triggered(
     app_obj,
 ):
     """Consume the remote_api_provisioning_triggered signal.
 
-    Provisioning events are queued during the service method call, but
-    the actual processing of the event is done here by a separate task. This
-    allows the service method to return quickly and not be blocked by the
-    processing of the event. It also allows us to use a callback to update
-    the record with the result of the provisioning event, without causing
-    collisions during the service method's action.
+    Provisioning event task is called directly from the service component
+    but the callback updates the record with the result of the provisioning
+    via an event queue to avoid detached instance errors.
 
     Events consumed from the remote-api-provisioning-events queue
     are processed here. The event is a dictionary of strings with the
@@ -85,13 +80,16 @@ def on_remote_api_provisioning_triggered(
             # as the first argument.
             current_app.logger.debug("Callback args:")
             current_app.logger.debug(pformat(event))
-            callback_signature = callback.s(**event) if callback else None
+
+            callback.delay(**event)
+
+            # callback_signature = callback.s(**event) if callback else None
 
             # the `link` task call will be executed after the task
-            send_remote_api_update.apply_async(
-                kwargs=event,
-                link=callback_signature,
-            )
+            # send_remote_api_update.apply_async(
+            #     kwargs=event,
+            #     link=callback_signature,
+            # )
 
 
 class InvenioRemoteAPIProvisioner(object):
@@ -151,14 +149,13 @@ class InvenioRemoteAPIProvisioner(object):
             community_component,
         ]
 
-    # TODO: Remove this listener for deprecated messaging queue.
-    # def init_listeners(self, app):
-    #     """Initialize listeners for the extension.
+    def init_listeners(self, app):
+        """Initialize listeners for the extension.
 
-    #     Args:
-    #         app (_type_): _description_
-    #     """
+        Args:
+            app (_type_): _description_
+        """
 
-    #     remote_api_provisioning_triggered.connect(
-    #         on_remote_api_provisioning_triggered, app
-    #     )
+        remote_api_provisioning_triggered.connect(
+            on_remote_api_provisioning_triggered, app
+        )

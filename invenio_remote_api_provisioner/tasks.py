@@ -17,6 +17,7 @@ from flask_principal import Identity
 from invenio_access.permissions import system_identity
 from invenio_access.utils import get_identity
 from invenio_accounts import current_accounts
+from invenio_queues.proxies import current_queues
 from invenio_rdm_records.records.api import RDMRecord, RDMDraft
 import logging
 import os
@@ -25,6 +26,7 @@ from pprint import pformat
 import requests
 from typing import Optional, Union
 from .utils import get_user_idp_info
+from .signals import remote_api_provisioning_triggered
 
 task_logger = get_task_logger(__name__)
 
@@ -336,15 +338,36 @@ def send_remote_api_update(
                     del callback_draft[k]
 
             task_logger.info("Calling callback")
-            callback_result = callback.delay(
-                response_json=response_string,
-                service_type=service_type,
-                service_method=service_method,
-                request_url=request_url,
-                payload_object=payload_object,
-                record=callback_record,
-                draft=callback_draft,
-                **kwargs,
+
+            messages_content = [
+                {
+                    "response_json": response_string,
+                    "service_type": service_type,
+                    "service_method": service_method,
+                    "request_url": request_url,
+                    "payload_object": payload_object,
+                    "record": callback_record,
+                    "draft": callback_draft,
+                    **kwargs,
+                }
+            ]
+
+            # Publish the message to the event queue.
+            current_queues.queues["remote-api-provisioning-events"].publish(
+                messages_content
             )
+            # Send the signal so that Invenio knows to consume the message
+            remote_api_provisioning_triggered.send(app._get_current_object())
+
+            # callback_result = callback.delay(
+            #     response_json=response_string,
+            #     service_type=service_type,
+            #     service_method=service_method,
+            #     request_url=request_url,
+            #     payload_object=payload_object,
+            #     record=callback_record,
+            #     draft=callback_draft,
+            #     **kwargs,
+            # )
 
         return response, callback_result
