@@ -17,7 +17,7 @@ from flask_principal import Identity
 from invenio_access.permissions import system_identity
 from invenio_access.utils import get_identity
 from invenio_accounts import current_accounts
-from invenio_queues.proxies import current_queues
+from invenio_queues import current_queues
 from invenio_rdm_records.records.api import RDMRecord, RDMDraft
 import logging
 import os
