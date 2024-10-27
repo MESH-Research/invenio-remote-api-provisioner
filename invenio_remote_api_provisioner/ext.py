@@ -112,6 +112,7 @@ class InvenioRemoteAPIProvisioner(object):
                 the extension
         """
         self.init_config(app)
+        self.init_listeners(app)
         app.extensions["invenio-remote-api-provisioner"] = self
 
     def init_config(self, app) -> None:
