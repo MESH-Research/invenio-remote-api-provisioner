@@ -88,10 +88,10 @@ def on_remote_api_provisioning_triggered(
             callback_signature = callback.s(**event) if callback else None
 
             # the `link` task call will be executed after the task
-            # send_remote_api_update.apply_async(
-            #     kwargs=event,
-            #     link=callback_signature,
-            # )
+            send_remote_api_update.apply_async(
+                kwargs=event,
+                link=callback_signature,
+            )
 
 
 class InvenioRemoteAPIProvisioner(object):
