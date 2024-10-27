@@ -143,7 +143,6 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                         )
                         current_app.logger.info(last_update_dt)
                     else:
-                        current_app.logger.warning(pformat(dir(record)))
                         uow.register(
                             TaskOp(
                                 send_remote_api_update,

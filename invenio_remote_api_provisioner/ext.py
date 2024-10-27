@@ -131,10 +131,8 @@ class InvenioRemoteAPIProvisioner(object):
             app.config, "rdm_record"
         )
         old_record_components = app.config.get(
-            "RDM_RECORDS_SERVICE_COMPONENTS", []
+            "RDM_RECORDS_SERVICE_COMPONENTS", [*DefaultRecordsComponents]
         )
-        if not old_record_components:
-            old_record_components = [*DefaultRecordsComponents]
         app.config["RDM_RECORDS_SERVICE_COMPONENTS"] = [
             *old_record_components,
             records_component,
