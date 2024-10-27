@@ -336,15 +336,15 @@ def send_remote_api_update(
                     del callback_draft[k]
 
             task_logger.info("Calling callback")
-            # callback_result = callback.delay(
-            #     response_json=response_string,
-            #     service_type=service_type,
-            #     service_method=service_method,
-            #     request_url=request_url,
-            #     payload_object=payload_object,
-            #     record=callback_record,
-            #     draft=callback_draft,
-            #     **kwargs,
-            # )
+            callback_result = callback.delay(
+                response_json=response_string,
+                service_type=service_type,
+                service_method=service_method,
+                request_url=request_url,
+                payload_object=payload_object,
+                record=callback_record,
+                draft=callback_draft,
+                **kwargs,
+            )
 
         return response, callback_result
