@@ -54,7 +54,9 @@ def on_remote_api_provisioning_triggered(
     - along with any other keyword arguments that are passed to the
         component method
     """
-    current_app.logger.debug("Received remote_api_provisioning_triggered ****")
+    current_app.logger.warning(
+        "Received remote_api_provisioning_triggered ****"
+    )
 
     for event in current_queues.queues[
         "remote-api-provisioning-events"

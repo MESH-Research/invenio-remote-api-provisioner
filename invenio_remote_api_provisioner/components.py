@@ -95,6 +95,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
             "publish", identity, record, draft, uow=uow, **kwargs
         )
 
+    @unit_of_work()
     def _do_method_action(
         self,
         service_method: str,
@@ -156,7 +157,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                                 is_published=record.is_published,
                                 is_draft=record.is_draft,
                                 is_deleted=record.is_deleted,
-                                parent=record.parent,
+                                # parent=record.parent,
                                 latest_version_index=(
                                     record.versions.latest_index
                                 ),

@@ -278,7 +278,7 @@ def send_remote_api_update(
         )
         request_headers = get_headers(event_config)
 
-        task_logger.debug("Sending remote api update ************")
+        task_logger.warning("Sending remote api update ************")
         task_logger.info("payload:")
         task_logger.info(pformat(payload_object))
         task_logger.info(f"request_url: {request_url}")
