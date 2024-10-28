@@ -155,8 +155,8 @@ def get_request_url(
 # TODO: Make retries configurable
 @shared_task(
     bind=True,
-    ignore_result=False,
-    retry_for=(RuntimeError,),
+    ignore_result=True,
+    retry_for=(RuntimeError, TimeoutError),
     retry_backoff=True,
     retry_kwargs={"max_retries": 5},
 )
@@ -370,4 +370,4 @@ def send_remote_api_update(
             #     **kwargs,
             # )
 
-        return response, callback_result
+        return response.text, callback_result

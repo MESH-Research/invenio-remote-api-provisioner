@@ -167,7 +167,6 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                                 latest_version_index=(
                                     record.versions.latest_index
                                 ),
-                                # latest_version_id=(record.versions.latest_id),
                                 current_version_index=(record.versions.index),
                                 draft=draft,
                                 endpoint=endpoint,
