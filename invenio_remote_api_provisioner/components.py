@@ -149,6 +149,12 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                         )
                         current_app.logger.info(last_update_dt)
                     else:
+                        current_app.logger.warning(
+                            "parent id: %s", record.parent.id
+                        )
+                        current_app.logger.warning(
+                            "parent: %s", pformat(record.parent)
+                        )
                         uow.register(
                             TaskOp(
                                 send_remote_api_update,
@@ -157,7 +163,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                                 is_published=record.is_published,
                                 is_draft=record.is_draft,
                                 is_deleted=record.is_deleted,
-                                # parent=record.parent,
+                                parent=record.parent.id,
                                 latest_version_index=(
                                     record.versions.latest_index
                                 ),
