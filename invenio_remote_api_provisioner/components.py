@@ -89,12 +89,19 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
     endpoints = all_endpoints.get(service_type, {})
     service_type = service_type
 
+    @unit_of_work()
+    def publish(self, identity, record, draft, uow=None, **kwargs):
+        self._do_method_action(
+            "publish", identity, record, draft, uow=uow, **kwargs
+        )
+
     def _do_method_action(
         self,
         service_method: str,
         identity: Identity,
         record: RDMRecord,
         draft: RDMDraft,
+        uow: UnitOfWork = None,
         **kwargs,
     ):
         current_app.logger.warning("Service method: %s", service_method)
@@ -141,24 +148,25 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                         )
                         current_app.logger.info(last_update_dt)
                     else:
-                        # uow.register(
-                        #     TaskOp(
-                        send_remote_api_update.delay(
-                            identity_id=identity.id,
-                            record=record,
-                            is_published=record.is_published,
-                            is_draft=record.is_draft,
-                            is_deleted=record.is_deleted,
-                            parent=record.parent,
-                            latest_version_index=(
-                                record.versions.latest_index
-                            ),
-                            latest_version_id=(record.versions.latest_id),
-                            current_version_index=(record.versions.index),
-                            draft=draft,
-                            endpoint=endpoint,
-                            service_type=self.service_type,
-                            service_method=service_method,
+                        uow.register(
+                            TaskOp(
+                                send_remote_api_update,
+                                identity_id=identity.id,
+                                record=record,
+                                is_published=record.is_published,
+                                is_draft=record.is_draft,
+                                is_deleted=record.is_deleted,
+                                parent=record.parent,
+                                latest_version_index=(
+                                    record.versions.latest_index
+                                ),
+                                latest_version_id=(record.versions.latest_id),
+                                current_version_index=(record.versions.index),
+                                draft=draft,
+                                endpoint=endpoint,
+                                service_type=self.service_type,
+                                service_method=service_method,
+                            )
                         )
 
                         # FIXME: We've deprecated this code using a queue
@@ -231,7 +239,16 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
             # )
             # current_app.logger.debug(pformat(messages_content))
 
-    methods = list(set([m for k, v in endpoints.items() for m in v.keys()]))
+    methods = list(
+        set(
+            [
+                m
+                for k, v in endpoints.items()
+                for m in v.keys()
+                if m != "publish"  # FIXME: testing hack
+            ]
+        )
+    )
     component_props = {
         "service_type": service_type,
         "endpoints": endpoints,
