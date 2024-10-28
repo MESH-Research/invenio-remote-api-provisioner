@@ -163,11 +163,11 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                                 is_published=record.is_published,
                                 is_draft=record.is_draft,
                                 is_deleted=record.is_deleted,
-                                parent=record.parent.id,
+                                parent=record.parent,
                                 latest_version_index=(
                                     record.versions.latest_index
                                 ),
-                                latest_version_id=(record.versions.latest_id),
+                                # latest_version_id=(record.versions.latest_id),
                                 current_version_index=(record.versions.index),
                                 draft=draft,
                                 endpoint=endpoint,
