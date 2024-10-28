@@ -89,6 +89,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
     endpoints = all_endpoints.get(service_type, {})
     service_type = service_type
 
+    @unit_of_work()
     def publish(self, identity, record, draft, uow=None, **kwargs):
         self._do_method_action(
             "publish", identity, record, draft, uow=uow, **kwargs
