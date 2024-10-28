@@ -261,6 +261,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                 service_method, identity, **kwargs
             )
         )
+    component_props["publish"] = publish
     service_names = {
         "rdm_record": "RDMRecord",
         "community": "Community",
