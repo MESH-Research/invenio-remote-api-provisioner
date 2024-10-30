@@ -119,15 +119,15 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         uow: UnitOfWork = None,
         **kwargs,
     ):
-        current_app.logger.warning("Service method: %s", service_method)
-        current_app.logger.warning("record:")
-        current_app.logger.warning(record)
-        current_app.logger.warning("data:")
-        current_app.logger.warning(kwargs.get("data"))
-        current_app.logger.warning("errors:")
-        current_app.logger.warning(kwargs.get("errors"))
+        # current_app.logger.warning("Service method: %s", service_method)
+        # current_app.logger.warning("record:")
+        # current_app.logger.warning(record)
+        # current_app.logger.warning("data:")
+        # current_app.logger.warning(kwargs.get("data"))
+        # current_app.logger.warning("errors:")
+        # current_app.logger.warning(kwargs.get("errors"))
         for endpoint, events in self.endpoints.items():
-            current_app.logger.warning("Endpoint: %s", endpoint)
+            # current_app.logger.warning("Endpoint: %s", endpoint)
             if service_method in events.keys():
                 event_config = events[service_method]
                 timing_field = event_config.get("timing_field")
@@ -164,12 +164,12 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                         )
                         current_app.logger.info(last_update_dt)
                     else:
-                        current_app.logger.warning(
-                            "parent id: %s", record.parent.id
-                        )
-                        current_app.logger.warning(
-                            "parent: %s", pformat(record.parent)
-                        )
+                        # current_app.logger.warning(
+                        #     "parent id: %s", record.parent.id
+                        # )
+                        # current_app.logger.warning(
+                        #     "parent: %s", pformat(record.parent)
+                        # )
                         uow.register(
                             TaskOp(
                                 send_remote_api_update,

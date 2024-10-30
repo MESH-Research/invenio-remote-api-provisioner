@@ -146,7 +146,7 @@ def get_request_url(
         request_url = event_config["url_factory"](
             identity, record=record, draft=draft, **kwargs
         )
-        task_logger.debug("Request URL: %s", request_url)
+        # task_logger.debug("Request URL: %s", request_url)
     else:
         request_url = endpoint
     return request_url
@@ -239,13 +239,13 @@ def send_remote_api_update(
             .get(endpoint, {})
             .get(service_method, {})
         )
-        app.logger.warning(f"Event config: {event_config}")
-        app.logger.warning(f"Service type: {service_type}")
-        app.logger.warning(f"Endpoint: {endpoint}")
-        app.logger.warning(f"Service method: {service_method}")
-        app.logger.warning(f"Identity: {identity_id}")
-        app.logger.warning(f"Record: {type(record)}")
-        app.logger.warning(f"Draft: {type(draft)}")
+        # app.logger.warning(f"Event config: {event_config}")
+        # app.logger.warning(f"Service type: {service_type}")
+        # app.logger.warning(f"Endpoint: {endpoint}")
+        # app.logger.warning(f"Service method: {service_method}")
+        # app.logger.warning(f"Identity: {identity_id}")
+        # app.logger.warning(f"Record: {type(record)}")
+        # app.logger.warning(f"Draft: {type(draft)}")
 
         payload_object = None
         if event_config.get("payload"):
@@ -278,14 +278,14 @@ def send_remote_api_update(
         )
         request_headers = get_headers(event_config)
 
-        task_logger.warning("Sending remote api update ************")
-        task_logger.info("payload:")
-        task_logger.info(pformat(payload_object))
-        task_logger.info(f"request_url: {request_url}")
-        task_logger.info(f"http_method: {http_method}")
-        task_logger.info(f"request_headers: {request_headers}")
-        task_logger.info(f"record_id: {record['id']}")
-        task_logger.info(f"draft_id: {draft.get('id')}")
+        # task_logger.warning("Sending remote api update ************")
+        # task_logger.info("payload:")
+        # task_logger.info(pformat(payload_object))
+        # task_logger.info(f"request_url: {request_url}")
+        # task_logger.info(f"http_method: {http_method}")
+        # task_logger.info(f"request_headers: {request_headers}")
+        # task_logger.info(f"record_id: {record['id']}")
+        # task_logger.info(f"draft_id: {draft.get('id')}")
 
         response = requests.request(
             http_method,

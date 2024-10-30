@@ -78,9 +78,9 @@ def on_remote_api_provisioning_triggered(
             conf = app_obj.config.get("REMOTE_API_PROVISIONER_EVENTS").get(
                 event["service_type"]
             )
-            app_obj.logger.debug("service conf:")
-            app_obj.logger.debug(pformat(conf.keys()))
-            app_obj.logger.debug(f"event request_url: {event['request_url']}")
+            # app_obj.logger.debug("service conf:")
+            # app_obj.logger.debug(pformat(conf.keys()))
+            # app_obj.logger.debug(f"event request_url: {event['request_url']}")
             endpoint_conf = [
                 v for k, v in conf.items() if k in event["request_url"]
             ][0]
@@ -89,8 +89,6 @@ def on_remote_api_provisioning_triggered(
             # Because it's called as a linked callback from another task,
             # the signature will receive the result of the prior task
             # as the first argument.
-            current_app.logger.debug("Callback args:")
-            current_app.logger.debug(pformat(event))
 
             callback.delay(**event)
 
