@@ -175,9 +175,21 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                                 send_remote_api_update,
                                 identity_id=identity.id,
                                 record=record,
-                                is_published=record.is_published,
-                                is_draft=record.is_draft,
-                                is_deleted=record.is_deleted,
+                                is_published=(
+                                    record.is_published
+                                    if hasattr(record, "is_published")
+                                    else None
+                                ),
+                                is_draft=(
+                                    record.is_draft
+                                    if hasattr(record, "is_draft")
+                                    else None
+                                ),
+                                is_deleted=(
+                                    record.is_deleted
+                                    if hasattr(record, "is_deleted")
+                                    else None
+                                ),
                                 parent=record.parent,
                                 latest_version_index=(
                                     record.versions.latest_index
