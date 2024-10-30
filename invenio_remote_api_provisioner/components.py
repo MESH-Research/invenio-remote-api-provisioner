@@ -114,8 +114,8 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         self,
         service_method: str,
         identity: Identity,
-        record: RDMRecord,
-        draft: RDMDraft,
+        record: RDMRecord = None,
+        draft: RDMDraft = None,
         uow: UnitOfWork = None,
         **kwargs,
     ):
