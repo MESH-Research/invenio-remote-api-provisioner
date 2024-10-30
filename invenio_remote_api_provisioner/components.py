@@ -193,8 +193,14 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                                 parent=record.parent,
                                 latest_version_index=(
                                     record.versions.latest_index
+                                    if hasattr(record, "versions")
+                                    else None
                                 ),
-                                current_version_index=(record.versions.index),
+                                current_version_index=(
+                                    record.versions.index
+                                    if hasattr(record, "versions")
+                                    else None
+                                ),
                                 draft=draft,
                                 endpoint=endpoint,
                                 service_type=self.service_type,
