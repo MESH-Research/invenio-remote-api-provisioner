@@ -96,13 +96,13 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         )
 
     @unit_of_work()
-    def delete(self, identity, record, draft, uow=None, **kwargs):
+    def delete(self, identity, record, draft=None, uow=None, **kwargs):
         self._do_method_action(
             "delete", identity, record, draft, uow=uow, **kwargs
         )
 
     @unit_of_work()
-    def delete_record(self, identity, record, draft, uow=None, **kwargs):
+    def delete_record(self, identity, record, draft=None, uow=None, **kwargs):
         self._do_method_action(
             "delete_record", identity, record, draft, uow=uow, **kwargs
         )
