@@ -90,21 +90,21 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
     service_type = service_type
 
     @unit_of_work()
-    def publish(self, identity, record, draft, uow=None, **kwargs):
+    def publish(self, identity, record, draft=None, uow=None, **kwargs):
         self._do_method_action(
-            "publish", identity, record, draft, uow=uow, **kwargs
+            "publish", identity, record, draft=draft, uow=uow, **kwargs
         )
 
     @unit_of_work()
     def delete(self, identity, record, draft=None, uow=None, **kwargs):
         self._do_method_action(
-            "delete", identity, record, draft, uow=uow, **kwargs
+            "delete", identity, record, draft=draft, uow=uow, **kwargs
         )
 
     @unit_of_work()
     def delete_record(self, identity, record, draft=None, uow=None, **kwargs):
         self._do_method_action(
-            "delete_record", identity, record, draft, uow=uow, **kwargs
+            "delete_record", identity, record, draft=draft, uow=uow, **kwargs
         )
 
     # FIXME: either fix unit_of_work decoration or add other methods
