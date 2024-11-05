@@ -141,9 +141,6 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                     # TODO: has to be custom field?
                     if timing_field:
                         last_update = record["custom_fields"].get(timing_field)
-                    current_app.logger.warning(
-                        f"Record in delete is: {pformat(record)}"
-                    )
                     current_app.logger.info(
                         f"Record {record.get('id')} last updated "
                         f"at {last_update}"
