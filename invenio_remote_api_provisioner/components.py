@@ -102,9 +102,9 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         )
 
     @unit_of_work()
-    def delete_record(self, identity, record, draft=None, uow=None, **kwargs):
+    def delete_record(self, identity, record, data=None, uow=None, **kwargs):
         self._do_method_action(
-            "delete_record", identity, record, draft=draft, uow=uow, **kwargs
+            "delete_record", identity, record, data=data, uow=uow, **kwargs
         )
 
     # FIXME: either fix unit_of_work decoration or add other methods
@@ -116,6 +116,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         identity: Identity,
         record: RDMRecord = None,
         draft: RDMDraft = None,
+        data: dict = None,
         uow: UnitOfWork = None,
         **kwargs,
     ):
@@ -138,6 +139,8 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                 # callback function. We cannot do this here in case the API
                 # call is not successful.
                 visibility = record.get("access", {}).get("visibility", None)
+                current_app.logger.warning(f"record: {pformat(record)}")
+                current_app.logger.warning(f"data: {pformat(data)}")
                 if not visibility:
                     visibility = draft.get("access", {}).get(
                         "record", "public"
