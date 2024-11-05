@@ -120,28 +120,18 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         uow: UnitOfWork = None,
         **kwargs,
     ):
-        # current_app.logger.warning("Service method: %s", service_method)
-        # current_app.logger.warning("record:")
-        # current_app.logger.warning(record)
-        # current_app.logger.warning("data:")
-        # current_app.logger.warning(kwargs.get("data"))
-        # current_app.logger.warning("errors:")
-        # current_app.logger.warning(kwargs.get("errors"))
         for endpoint, events in self.endpoints.items():
-            # current_app.logger.warning("Endpoint: %s", endpoint)
             if service_method in events.keys():
                 event_config = events[service_method]
                 timing_field = event_config.get("timing_field")
-                # FIXME: prevent infinite loop if callback triggers a
+                # Prevent infinite loop if callback triggers a
                 # subsequent publish by not issuing signal
                 # if record has been updated in the last 30 seconds
                 # NOTE: You will need to update the timing field value in your
                 # callback function. We cannot do this here in case the API
                 # call is not successful.
-                visibility = record.get("access", {}).get("visibility", None)
-                current_app.logger.warning(f"record: {pformat(record)}")
-                current_app.logger.warning(f"data: {pformat(data)}")
-                if not visibility:
+                visibility = record.get("access", {}).get("record", None)
+                if not visibility and draft:
                     visibility = draft.get("access", {}).get(
                         "record", "public"
                     )
