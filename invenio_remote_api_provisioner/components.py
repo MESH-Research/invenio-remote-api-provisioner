@@ -22,8 +22,9 @@ from invenio_records_resources.services.uow import (
     unit_of_work,
     UnitOfWork,
 )
-from pprint import pformat
 
+# from pprint import pformat
+from typing import Optional
 from .tasks import send_remote_api_update
 
 # from .signals import remote_api_provisioning_triggered
@@ -114,10 +115,10 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         self,
         service_method: str,
         identity: Identity,
-        record: RDMRecord = None,
-        draft: RDMDraft = None,
-        data: dict = None,
-        uow: UnitOfWork = None,
+        record: RDMRecord,
+        draft: Optional[RDMDraft] = None,
+        data: Optional[dict] = None,
+        uow: Optional[UnitOfWork] = None,
         **kwargs,
     ):
         for endpoint, events in self.endpoints.items():
@@ -132,9 +133,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                 # call is not successful.
                 visibility = record.get("access", {}).get("record", None)
                 if not visibility and draft:
-                    visibility = draft.get("access", {}).get(
-                        "record", "public"
-                    )
+                    visibility = draft.get("access", {}).get("record", "public")
 
                 last_update = None
                 if record and visibility == "public":
@@ -142,8 +141,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                     if timing_field:
                         last_update = record["custom_fields"].get(timing_field)
                     current_app.logger.info(
-                        f"Record {record.get('id')} last updated "
-                        f"at {last_update}"
+                        f"Record {record.get('id')} last updated " f"at {last_update}"
                     )
                     last_update_dt = (
                         arrow.get(last_update)
@@ -156,13 +154,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                             " Avoiding infinite loop."
                         )
                         current_app.logger.info(last_update_dt)
-                    else:
-                        # current_app.logger.warning(
-                        #     "parent id: %s", record.parent.id
-                        # )
-                        # current_app.logger.warning(
-                        #     "parent: %s", pformat(record.parent)
-                        # )
+                    elif uow and record:
                         uow.register(
                             TaskOp(
                                 send_remote_api_update,

@@ -32,7 +32,7 @@ task_logger = get_task_logger(__name__)
 
 task_logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
-    "%(asctime)s:RemoteUserDataService:%(levelname)s: %(message)s"
+    "%(asctime)s:RemoteAPIProvisioner:%(levelname)s: %(message)s"
 )
 log_folder = Path(__file__).parent / "logs"
 os.makedirs(log_folder, exist_ok=True)
@@ -94,15 +94,12 @@ def get_payload_object(
             owner.update(get_user_idp_info(user))
 
     if callable(payload):
-        payload_object = payload(
-            identity, record=record, owner=owner, **kwargs
-        )
+        payload_object = payload(identity, record=record, owner=owner, **kwargs)
     elif isinstance(payload, dict):
         payload_object = payload
     else:
         raise ValueError(
-            "Event payload must be a dict or a callable that returns a"
-            " dict."
+            "Event payload must be a dict or a callable that returns a" " dict."
         )
     if "internal_error" in payload_object.keys():
         raise RuntimeError(payload_object["internal_error"])
@@ -226,9 +223,7 @@ def send_remote_api_update(
     with app.app_context():
 
         if identity_id != "system":
-            user_object = current_accounts.datastore.get_user_by_id(
-                identity_id
-            )
+            user_object = current_accounts.datastore.get_user_by_id(identity_id)
             identity = get_identity(user_object)
         else:
             identity = system_identity
@@ -239,13 +234,13 @@ def send_remote_api_update(
             .get(endpoint, {})
             .get(service_method, {})
         )
-        # app.logger.warning(f"Event config: {event_config}")
-        # app.logger.warning(f"Service type: {service_type}")
-        # app.logger.warning(f"Endpoint: {endpoint}")
-        # app.logger.warning(f"Service method: {service_method}")
-        # app.logger.warning(f"Identity: {identity_id}")
-        # app.logger.warning(f"Record: {type(record)}")
-        # app.logger.warning(f"Draft: {type(draft)}")
+        task_logger.warning(f"Event config: {event_config}")
+        task_logger.warning(f"Service type: {service_type}")
+        task_logger.warning(f"Endpoint: {endpoint}")
+        task_logger.warning(f"Service method: {service_method}")
+        task_logger.warning(f"Identity: {identity_id}")
+        task_logger.warning(f"Record: {type(record)}")
+        task_logger.warning(f"Draft: {type(draft)}")
 
         payload_object = None
         if event_config.get("payload"):
@@ -255,9 +250,7 @@ def send_remote_api_update(
                     event_config["payload"],
                     record=record,
                     draft=draft,
-                    with_record_owner=event_config.get(
-                        "with_record_owner", False
-                    ),
+                    with_record_owner=event_config.get("with_record_owner", False),
                     **kwargs,
                 )
                 # current_app.logger.debug("Payload object:")
@@ -273,9 +266,7 @@ def send_remote_api_update(
         request_url = get_request_url(
             identity, endpoint, record, draft, event_config, **kwargs
         )
-        http_method = get_http_method(
-            identity, record, draft, event_config, **kwargs
-        )
+        http_method = get_http_method(identity, record, draft, event_config, **kwargs)
         request_headers = get_headers(event_config)
 
         # task_logger.warning("Sending remote api update ************")
@@ -298,13 +289,11 @@ def send_remote_api_update(
         print(response)
         if response.status_code != 200:
             task_logger.error(
-                "Error sending notification (status code"
-                f" {response.status_code})"
+                "Error sending notification (status code" f" {response.status_code})"
             )
             task_logger.error(response.text)
             raise RuntimeError(
-                f"Error sending notification (status code "
-                f"{response.status_code})"
+                f"Error sending notification (status code " f"{response.status_code})"
             )
         else:
             task_logger.info("Notification sent successfully")
