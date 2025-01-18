@@ -287,7 +287,7 @@ def send_remote_api_update(
             headers=request_headers,
         )
         print(response)
-        if response.status_code != 200:
+        if response.status_code != 200:  # FIXME: Always 200?
             task_logger.error(
                 "Error sending notification (status code" f" {response.status_code})"
             )

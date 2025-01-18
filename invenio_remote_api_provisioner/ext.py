@@ -54,13 +54,9 @@ def on_remote_api_provisioning_triggered(
     - along with any other keyword arguments that are passed to the
         component method
     """
-    current_app.logger.warning(
-        "Received remote_api_provisioning_triggered ****"
-    )
+    current_app.logger.warning("Received remote_api_provisioning_triggered ****")
 
-    for event in current_queues.queues[
-        "remote-api-provisioning-events"
-    ].consume():
+    for event in current_queues.queues["remote-api-provisioning-events"].consume():
         current_app.logger.debug(
             f"Consumed event: {event['service_type']} "
             f"{event['service_method']} "
@@ -81,9 +77,7 @@ def on_remote_api_provisioning_triggered(
             # app_obj.logger.debug("service conf:")
             # app_obj.logger.debug(pformat(conf.keys()))
             # app_obj.logger.debug(f"event request_url: {event['request_url']}")
-            endpoint_conf = [
-                v for k, v in conf.items() if k in event["request_url"]
-            ][0]
+            endpoint_conf = [v for k, v in conf.items() if k in event["request_url"]][0]
             method_conf = endpoint_conf[event["service_method"]]
             callback = method_conf.get("callback")
             # Because it's called as a linked callback from another task,
@@ -135,9 +129,7 @@ class InvenioRemoteAPIProvisioner(object):
             if k.startswith("REMOTE_API_PROVISIONER_"):
                 app.config.setdefault(k, getattr(config, k))
 
-        records_component = RemoteAPIProvisionerFactory(
-            app.config, "rdm_record"
-        )
+        records_component = RemoteAPIProvisionerFactory(app.config, "rdm_record")
         old_record_components = app.config.get(
             "RDM_RECORDS_SERVICE_COMPONENTS", [*DefaultRecordsComponents]
         )
@@ -146,12 +138,8 @@ class InvenioRemoteAPIProvisioner(object):
             records_component,
         ]
 
-        community_component = RemoteAPIProvisionerFactory(
-            app.config, "community"
-        )
-        old_community_components = app.config.get(
-            "COMMUNITIES_SERVICE_COMPONENTS", []
-        )
+        community_component = RemoteAPIProvisionerFactory(app.config, "community")
+        old_community_components = app.config.get("COMMUNITIES_SERVICE_COMPONENTS", [])
         if not old_community_components:
             old_community_components = [*DefaultCommunityComponents]
         app.config["COMMUNITIES_SERVICE_COMPONENTS"] = [

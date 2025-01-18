@@ -154,102 +154,137 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                             " Avoiding infinite loop."
                         )
                         current_app.logger.info(last_update_dt)
-                    elif uow and record:
-                        uow.register(
-                            TaskOp(
-                                send_remote_api_update,
-                                identity_id=identity.id,
-                                record=record,
-                                is_published=(
-                                    record.is_published
-                                    if hasattr(record, "is_published")
-                                    else None
-                                ),
-                                is_draft=(
-                                    record.is_draft
-                                    if hasattr(record, "is_draft")
-                                    else None
-                                ),
-                                is_deleted=(
-                                    record.is_deleted
-                                    if hasattr(record, "is_deleted")
-                                    else None
-                                ),
-                                parent=record.parent,
-                                latest_version_index=(
-                                    record.versions.latest_index
-                                    if hasattr(record, "versions")
-                                    else None
-                                ),
-                                current_version_index=(
-                                    record.versions.index
-                                    if hasattr(record, "versions")
-                                    else None
-                                ),
-                                draft=draft,
-                                endpoint=endpoint,
-                                service_type=self.service_type,
-                                service_method=service_method,
-                            )
+                    elif record:
+                        send_remote_api_update.delay(
+                            identity_id=identity.id,
+                            record=record,
+                            is_published=(
+                                record.is_published
+                                if hasattr(record, "is_published")
+                                else None
+                            ),
+                            is_draft=(
+                                record.is_draft if hasattr(record, "is_draft") else None
+                            ),
+                            is_deleted=(
+                                record.is_deleted
+                                if hasattr(record, "is_deleted")
+                                else None
+                            ),
+                            parent=record.parent,
+                            latest_version_index=(
+                                record.versions.latest_index
+                                if hasattr(record, "versions")
+                                else None
+                            ),
+                            current_version_index=(
+                                record.versions.index
+                                if hasattr(record, "versions")
+                                else None
+                            ),
+                            draft=draft,
+                            endpoint=endpoint,
+                            service_type=self.service_type,
+                            service_method=service_method,
                         )
+                    # FIXME: Why do we get detached instance problems if we
+                    #        use the uow?
+                    # elif uow and record:
+                    #     uow.register(
+                    #         TaskOp(
+                    #             send_remote_api_update,
+                    #             identity_id=identity.id,
+                    #             record=record,
+                    #             is_published=(
+                    #                 record.is_published
+                    #                 if hasattr(record, "is_published")
+                    #                 else None
+                    #             ),
+                    #             is_draft=(
+                    #                 record.is_draft
+                    #                 if hasattr(record, "is_draft")
+                    #                 else None
+                    #             ),
+                    #             is_deleted=(
+                    #                 record.is_deleted
+                    #                 if hasattr(record, "is_deleted")
+                    #                 else None
+                    #             ),
+                    #             parent=record.parent,
+                    #             latest_version_index=(
+                    #                 record.versions.latest_index
+                    #                 if hasattr(record, "versions")
+                    #                 else None
+                    #             ),
+                    #             current_version_index=(
+                    #                 record.versions.index
+                    #                 if hasattr(record, "versions")
+                    #                 else None
+                    #             ),
+                    #             draft=draft,
+                    #             endpoint=endpoint,
+                    #             service_type=self.service_type,
+                    #             service_method=service_method,
+                    #         )
+                    #     )
 
-                        # FIXME: We've deprecated this code using a queue
-                        # in favour of directly calling the task. (Which is
-                        # processed in a queue anyway and is much more
-                        # easily tested.)
-                        #
-                        # current_app.logger.info(
-                        #     "Record has not been updated in the last 30 "
-                        #     "seconds."
-                        # )
-                        # current_app.logger.info(
-                        #     f"Sending {self.service_type} {service_method} "
-                        #     f"message to {endpoint} for record "
-                        #     f"{record.get('id') if record else None}, "
-                        #     f"draft {draft.get('id') if draft else None}"
-                        # )
+                    # FIXME: We've deprecated this code using a queue
+                    # in favour of directly calling the task. (Which is
+                    # processed in a queue anyway and is much more
+                    # easily tested.)
+                    #
+                    # current_app.logger.info(
+                    #     "Record has not been updated in the last 30 "
+                    #     "seconds."
+                    # )
+                    # current_app.logger.info(
+                    #     f"Sending {self.service_type} {service_method} "
+                    #     f"message to {endpoint} for record "
+                    #     f"{record.get('id') if record else None}, "
+                    #     f"draft {draft.get('id') if draft else None}"
+                    # )
 
-                        # messages_content = [
-                        #     {
-                        #         "service_type": self.service_type,
-                        #         "service_method": service_method,
-                        #         "request_url": request_url,
-                        #         "http_method": http_method,
-                        #         "payload_object": payload_object,
-                        #         "record_id": (
-                        #             record.get("id") if record else None
-                        #         ),
-                        #         "draft_id": draft.get("id") if draft
-                        #   else None,
-                        #         "request_headers": headers,
-                        #     }
-                        # ]
+                    # messages_content = [
+                    #     {
+                    #         "service_type": self.service_type,
+                    #         "service_method": service_method,
+                    #         "request_url": request_url,
+                    #         "http_method": http_method,
+                    #         "payload_object": payload_object,
+                    #         "record_id": (
+                    #             record.get("id") if record else None
+                    #         ),
+                    #         "draft_id": draft.get("id") if draft
+                    #   else None,
+                    #         "request_headers": headers,
+                    #     }
+                    # ]
 
-                        # current_queues.queues[
-                        #     "remote-api-provisioning-events"
-                        # ].publish(messages_content)
-                        # remote_api_provisioning_triggered.send(
-                        #     current_app._get_current_object()
-                        # )
+                    # current_queues.queues[
+                    #     "remote-api-provisioning-events"
+                    # ].publish(messages_content)
+                    # remote_api_provisioning_triggered.send(
+                    #     current_app._get_current_object()
+                    # )
 
-                        # conf = app_obj.config.get(
-                        #     "REMOTE_API_PROVISIONER_EVENTS"
-                        # ).get(event["service_type"])
-                        # endpoint_conf = [
-                        #     v
-                        #     for k, v in conf.items()
-                        #     if k in event["request_url"]
-                        # ][0]
-                        # method_conf = endpoint_conf[event["service_method"]]
-                        # callback = method_conf.get("callback")
-                        # Because it's called as a linked callback from
-                        # another task, the signature will receive the result
-                        # of the prior task as the first argument.
-                        # current_app.logger.debug("Callback args:")
-                        # current_app.logger.debug(pformat(event))
-                        # callback_signature = (
-                        #     callback.s(**event) if callback else None
-                        # )
+                    # conf = app_obj.config.get(
+                    #     "REMOTE_API_PROVISIONER_EVENTS"
+                    # ).get(event["service_type"])
+                    # endpoint_conf = [
+                    #     v
+                    #     for k, v in conf.items()
+                    #     if k in event["request_url"]
+                    # ][0]
+                    # method_conf = endpoint_conf[event["service_method"]]
+                    # callback = method_conf.get("callback")
+                    # Because it's called as a linked callback from
+                    # another task, the signature will receive the result
+                    # of the prior task as the first argument.
+                    # current_app.logger.debug("Callback args:")
+                    # current_app.logger.debug(pformat(event))
+                    # callback_signature = (
+                    #     callback.s(**event) if callback else None
+                    # )
 
             # the `link` task call will be executed after the task
             # send_remote_api_update.apply_async(
