@@ -21,9 +21,7 @@ from invenio_remote_api_provisioner.signals import (
 )
 from invenio_remote_api_provisioner.tasks import send_remote_api_update
 import os
-from .components import (
-    RemoteAPIProvisionerFactory,
-)
+from .components import RemoteAPIProvisionerFactory
 
 from . import config
 
