@@ -23,7 +23,7 @@ from invenio_records_resources.services.uow import (
     UnitOfWork,
 )
 
-# from pprint import pformat
+from pprint import pformat
 from typing import Optional
 from .tasks import send_remote_api_update
 
@@ -97,6 +97,12 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         )
 
     @unit_of_work()
+    def update(self, identity, record, draft=None, data=None, uow=None, **kwargs):
+        self._do_method_action(
+            "update", identity, record, draft=draft, data=data, uow=uow, **kwargs
+        )
+
+    @unit_of_work()
     def delete(self, identity, record, draft=None, uow=None, **kwargs):
         self._do_method_action(
             "delete", identity, record, draft=draft, uow=uow, **kwargs
@@ -123,6 +129,13 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
     ):
         for endpoint, events in self.endpoints.items():
             if service_method in events.keys():
+                current_app.logger.debug(f"service_method: {service_method}")
+                current_app.logger.debug(f"draft: {draft}")
+                current_app.logger.debug(f"record: {record}")
+                current_app.logger.debug(f"data: {data}")
+                current_app.logger.debug(
+                    f"kwargs: {pformat({k: v for k, v in kwargs.items()})}",
+                )
                 event_config = events[service_method]
                 timing_field = event_config.get("timing_field")
                 # Prevent infinite loop if callback triggers a
@@ -131,17 +144,31 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                 # NOTE: You will need to update the timing field value in your
                 # callback function. We cannot do this here in case the API
                 # call is not successful.
-                visibility = record.get("access", {}).get("record", None)
-                if not visibility and draft:
-                    visibility = draft.get("access", {}).get("record", "public")
+                if service_type == "rdm_record":
+                    visibility = record.get("access", {}).get("record", None)
+                    if not visibility and draft:
+                        visibility = draft.get("access", {}).get("record", "public")
+                elif service_type == "community":
+                    visibility = record.get("access", {}).get("visibility", None)
+                else:
+                    raise ValueError(f"Invalid service type: {service_type}")
 
                 last_update = None
                 if record and visibility == "public":
                     # TODO: has to be custom field?
+                    if service_type == "rdm_record":
+                        recid = record.get("id")
+                    elif service_type == "community" and data:
+                        recid = data["slug"]
+                    elif service_type == "community" and service_method == "delete":
+                        recid = None
+                    elif service_type == "community" and service_method == "restore":
+                        recid = None  # FIXME: Implement restore
+
                     if timing_field:
                         last_update = record["custom_fields"].get(timing_field)
                     current_app.logger.info(
-                        f"Record {record.get('id')} last updated " f"at {last_update}"
+                        f"Record {recid} last updated " f"at {last_update}"
                     )
                     last_update_dt = (
                         arrow.get(last_update)
@@ -150,153 +177,46 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                     )
                     if last_update_dt.shift(seconds=5) > arrow.utcnow():
                         current_app.logger.info(
-                            "Record has been updated in the last 30 seconds."
+                            "Record has been updated in the last 5 seconds."
                             " Avoiding infinite loop."
                         )
                         current_app.logger.info(last_update_dt)
-                    elif record:
-                        send_remote_api_update.delay(
-                            identity_id=identity.id,
-                            record=record,
-                            is_published=(
+                    elif record and uow:
+                        task_payload = {
+                            "identity_id": identity.id,
+                            "record": record.copy(),
+                            "is_published": (
                                 record.is_published
                                 if hasattr(record, "is_published")
                                 else None
                             ),
-                            is_draft=(
+                            "is_draft": (
                                 record.is_draft if hasattr(record, "is_draft") else None
                             ),
-                            is_deleted=(
+                            "is_deleted": (
                                 record.is_deleted
                                 if hasattr(record, "is_deleted")
                                 else None
                             ),
-                            parent=record.parent,
-                            latest_version_index=(
-                                record.versions.latest_index
+                            "parent": record.parent,
+                            "latest_version_index": (
+                                getattr(record.versions, "latest_index", None)
                                 if hasattr(record, "versions")
                                 else None
                             ),
-                            current_version_index=(
-                                record.versions.index
+                            "current_version_index": (
+                                getattr(record.versions, "index", None)
                                 if hasattr(record, "versions")
                                 else None
                             ),
-                            draft=draft,
-                            endpoint=endpoint,
-                            service_type=self.service_type,
-                            service_method=service_method,
-                        )
-                    # FIXME: Why do we get detached instance problems if we
-                    #        use the uow?
-                    # elif uow and record:
-                    #     uow.register(
-                    #         TaskOp(
-                    #             send_remote_api_update,
-                    #             identity_id=identity.id,
-                    #             record=record,
-                    #             is_published=(
-                    #                 record.is_published
-                    #                 if hasattr(record, "is_published")
-                    #                 else None
-                    #             ),
-                    #             is_draft=(
-                    #                 record.is_draft
-                    #                 if hasattr(record, "is_draft")
-                    #                 else None
-                    #             ),
-                    #             is_deleted=(
-                    #                 record.is_deleted
-                    #                 if hasattr(record, "is_deleted")
-                    #                 else None
-                    #             ),
-                    #             parent=record.parent,
-                    #             latest_version_index=(
-                    #                 record.versions.latest_index
-                    #                 if hasattr(record, "versions")
-                    #                 else None
-                    #             ),
-                    #             current_version_index=(
-                    #                 record.versions.index
-                    #                 if hasattr(record, "versions")
-                    #                 else None
-                    #             ),
-                    #             draft=draft,
-                    #             endpoint=endpoint,
-                    #             service_type=self.service_type,
-                    #             service_method=service_method,
-                    #         )
-                    #     )
-
-                    # FIXME: We've deprecated this code using a queue
-                    # in favour of directly calling the task. (Which is
-                    # processed in a queue anyway and is much more
-                    # easily tested.)
-                    #
-                    # current_app.logger.info(
-                    #     "Record has not been updated in the last 30 "
-                    #     "seconds."
-                    # )
-                    # current_app.logger.info(
-                    #     f"Sending {self.service_type} {service_method} "
-                    #     f"message to {endpoint} for record "
-                    #     f"{record.get('id') if record else None}, "
-                    #     f"draft {draft.get('id') if draft else None}"
-                    # )
-
-                    # messages_content = [
-                    #     {
-                    #         "service_type": self.service_type,
-                    #         "service_method": service_method,
-                    #         "request_url": request_url,
-                    #         "http_method": http_method,
-                    #         "payload_object": payload_object,
-                    #         "record_id": (
-                    #             record.get("id") if record else None
-                    #         ),
-                    #         "draft_id": draft.get("id") if draft
-                    #   else None,
-                    #         "request_headers": headers,
-                    #     }
-                    # ]
-
-                    # current_queues.queues[
-                    #     "remote-api-provisioning-events"
-                    # ].publish(messages_content)
-                    # remote_api_provisioning_triggered.send(
-                    #     current_app._get_current_object()
-                    # )
-
-                    # conf = app_obj.config.get(
-                    #     "REMOTE_API_PROVISIONER_EVENTS"
-                    # ).get(event["service_type"])
-                    # endpoint_conf = [
-                    #     v
-                    #     for k, v in conf.items()
-                    #     if k in event["request_url"]
-                    # ][0]
-                    # method_conf = endpoint_conf[event["service_method"]]
-                    # callback = method_conf.get("callback")
-                    # Because it's called as a linked callback from
-                    # another task, the signature will receive the result
-                    # of the prior task as the first argument.
-                    # current_app.logger.debug("Callback args:")
-                    # current_app.logger.debug(pformat(event))
-                    # callback_signature = (
-                    #     callback.s(**event) if callback else None
-                    # )
-
-            # the `link` task call will be executed after the task
-            # send_remote_api_update.apply_async(
-            #     kwargs=event,
-            #     link=callback_signature,
-            # )
-            # current_app.logger.debug(
-            #     f"Published {self.service_type} {service_method} event "
-            #     "to queue and emitted remote_api_provisioning_triggered"
-            #     " signal"
-            # )
-            # current_app.logger.debug(pformat(messages_content))
+                            "draft": draft,
+                            "data": data,
+                            "endpoint": endpoint,
+                            "service_type": self.service_type,
+                            "service_method": service_method,
+                        }
+                        current_app.logger.debug(f"task_payload: {task_payload}")
+                        uow.register(TaskOp(send_remote_api_update, **task_payload))
 
     methods = list(
         set(
@@ -304,7 +224,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                 m
                 for k, v in endpoints.items()
                 for m in v.keys()
-                if m != "publish"  # FIXME: testing hack
+                if m not in ["publish", "update"]  # FIXME: testing hack
             ]
         )
     )
@@ -320,6 +240,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                 service_method, identity, **kwargs
             )
         )
+    component_props["update"] = update
     component_props["publish"] = publish
     component_props["delete"] = delete
     component_props["delete_record"] = delete_record

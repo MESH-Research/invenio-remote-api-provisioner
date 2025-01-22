@@ -52,6 +52,7 @@ def get_payload_object(
     identity: Identity,
     payload: Union[dict, callable],
     record: dict = {},
+    data: dict = {},
     with_record_owner: bool = False,
     **kwargs,
 ) -> dict:
@@ -61,6 +62,7 @@ def get_payload_object(
         identity (str): The identity of the user performing
                             the service operation.
         record (dict): The record returned from the service method.
+        data (dict): The data returned from the service method.
         payload (dict or callable): The payload object or a callable
                                     that returns the payload object.
         with_record_owner (bool): Include the record owner in the
@@ -94,15 +96,19 @@ def get_payload_object(
             owner.update(get_user_idp_info(user))
 
     if callable(payload):
-        payload_object = payload(identity, record=record, owner=owner, **kwargs)
+        payload_object = payload(
+            identity, record=record, owner=owner, data=data, **kwargs
+        )
     elif isinstance(payload, dict):
         payload_object = payload
     else:
         raise ValueError(
             "Event payload must be a dict or a callable that returns a" " dict."
         )
-    if "internal_error" in payload_object.keys():
+    if payload_object and "internal_error" in payload_object.keys():
         raise RuntimeError(payload_object["internal_error"])
+    elif not payload_object:
+        raise RuntimeError("Payload object is empty")
     else:
         return payload_object
 
@@ -151,14 +157,13 @@ def get_request_url(
 
 # TODO: Make retries configurable
 @shared_task(
-    bind=True,
+    bind=False,
     ignore_result=True,
     retry_for=(RuntimeError, TimeoutError),
     retry_backoff=True,
     retry_kwargs={"max_retries": 5},
 )
 def send_remote_api_update(
-    self,
     identity_id: str = "",
     record: dict = {},
     is_published: bool = False,
@@ -172,6 +177,7 @@ def send_remote_api_update(
     endpoint: str = "",
     service_type: str = "",
     service_method: str = "",
+    data: dict = {},
     **kwargs,
 ) -> tuple[Response, Union[dict, str, int, list, None]]:
     """Send a record event update to a remote API.
@@ -220,143 +226,149 @@ def send_remote_api_update(
     record["latest_version_id"] = latest_version_id
     record["current_version_index"] = current_version_index
 
-    with app.app_context():
+    # with app.app_context():
 
-        if identity_id != "system":
-            user_object = current_accounts.datastore.get_user_by_id(identity_id)
-            identity = get_identity(user_object)
-        else:
-            identity = system_identity
+    if identity_id != "system":
+        user_object = current_accounts.datastore.get_user_by_id(identity_id)
+        identity = get_identity(user_object)
+    else:
+        identity = system_identity
 
-        event_config = (
-            app.config.get("REMOTE_API_PROVISIONER_EVENTS", {})
-            .get(service_type, {})
-            .get(endpoint, {})
-            .get(service_method, {})
-        )
-        task_logger.warning(f"Event config: {event_config}")
-        task_logger.warning(f"Service type: {service_type}")
-        task_logger.warning(f"Endpoint: {endpoint}")
-        task_logger.warning(f"Service method: {service_method}")
-        task_logger.warning(f"Identity: {identity_id}")
-        task_logger.warning(f"Record: {type(record)}")
-        task_logger.warning(f"Draft: {type(draft)}")
+    event_config = (
+        app.config.get("REMOTE_API_PROVISIONER_EVENTS", {})
+        .get(service_type, {})
+        .get(endpoint, {})
+        .get(service_method, {})
+    )
+    task_logger.warning(f"Event config: {event_config}")
+    task_logger.warning(f"Service type: {service_type}")
+    task_logger.warning(f"Endpoint: {endpoint}")
+    task_logger.warning(f"Service method: {service_method}")
+    task_logger.warning(f"Identity: {identity_id}")
+    task_logger.warning(f"Record: {type(record)}")
+    task_logger.warning(f"Draft: {type(draft)}")
 
-        payload_object = None
-        if event_config.get("payload"):
-            try:
-                payload_object = get_payload_object(
-                    identity,
-                    event_config["payload"],
-                    record=record,
-                    draft=draft,
-                    with_record_owner=event_config.get("with_record_owner", False),
-                    **kwargs,
-                )
-                # current_app.logger.debug("Payload object:")
-                # current_app.logger.debug(pformat(payload_object))
-            except (RuntimeError, ValueError) as e:
-                task_logger.error(
-                    f"Could not send "
-                    f"{service_type} {service_method} "
-                    f"update for record {record['id']}: Problem assembling "
-                    f"update payload: {e}"
-                )
-
-        request_url = get_request_url(
-            identity, endpoint, record, draft, event_config, **kwargs
-        )
-        http_method = get_http_method(identity, record, draft, event_config, **kwargs)
-        request_headers = get_headers(event_config)
-
-        # task_logger.warning("Sending remote api update ************")
-        # task_logger.info("payload:")
-        # task_logger.info(pformat(payload_object))
-        # task_logger.info(f"request_url: {request_url}")
-        # task_logger.info(f"http_method: {http_method}")
-        # task_logger.info(f"request_headers: {request_headers}")
-        # task_logger.info(f"record_id: {record['id']}")
-        # task_logger.info(f"draft_id: {draft.get('id')}")
-
-        response = requests.request(
-            http_method,
-            url=request_url,
-            json=payload_object,
-            allow_redirects=False,
-            timeout=10,
-            headers=request_headers,
-        )
-        print(response)
-        if response.status_code != 200:  # FIXME: Always 200?
-            task_logger.error(
-                "Error sending notification (status code" f" {response.status_code})"
-            )
-            task_logger.error(response.text)
-            raise RuntimeError(
-                f"Error sending notification (status code " f"{response.status_code})"
-            )
-        else:
-            task_logger.info("Notification sent successfully")
-            task_logger.info("response:")
-            task_logger.info(response.json())
-            task_logger.info("-----------------------")
-
+    payload_object = None
+    if event_config.get("payload"):
         try:
-            response_string = response.json()
-        except ValueError as e:
-            task_logger.error(f"Error decoding response: {e}")
-            response_string = response.text
-
-        callback = event_config.get("callback")
-        callback_result = None
-        if callback:
-            callback_record = record
-            callback_draft = draft
-            for k in [
-                "is_published",
-                "is_draft",
-                "is_deleted",
-                "parent",
-                "latest_version_index",
-                "latest_version_id",
-                "current_version_index",
-            ]:
-                if k in record.keys():
-                    del callback_record[k]
-                if k in draft.keys():
-                    del callback_draft[k]
-
-            task_logger.info("Calling callback")
-
-            messages_content = [
-                {
-                    "response_json": response_string,
-                    "service_type": service_type,
-                    "service_method": service_method,
-                    "request_url": request_url,
-                    "payload_object": payload_object,
-                    "record": callback_record,
-                    "draft": callback_draft,
-                    **kwargs,
-                }
-            ]
-
-            # Publish the message to the event queue.
-            current_queues.queues["remote-api-provisioning-events"].publish(
-                messages_content
+            payload_object = get_payload_object(
+                identity,
+                event_config["payload"],
+                record=record,
+                draft=draft,
+                data=data,
+                with_record_owner=event_config.get("with_record_owner", False),
+                **kwargs,
             )
-            # Send the signal so that Invenio knows to consume the message
-            remote_api_provisioning_triggered.send(app._get_current_object())
+            # current_app.logger.debug("Payload object:")
+            # current_app.logger.debug(pformat(payload_object))
+        except (RuntimeError, ValueError) as e:
+            task_logger.error(
+                f"Could not send "
+                f"{service_type} {service_method} "
+                f"update for record {record.get('id') or data.get('slug')}: "
+                "Problem assembling "
+                f"update payload: {e}"
+            )
 
-            # callback_result = callback.delay(
-            #     response_json=response_string,
-            #     service_type=service_type,
-            #     service_method=service_method,
-            #     request_url=request_url,
-            #     payload_object=payload_object,
-            #     record=callback_record,
-            #     draft=callback_draft,
-            #     **kwargs,
-            # )
+    request_url = get_request_url(
+        identity, endpoint, record, draft, event_config, **kwargs
+    )
+    http_method = get_http_method(identity, record, draft, event_config, **kwargs)
+    request_headers = get_headers(event_config)
 
-        return response.text, callback_result
+    # task_logger.warning("Sending remote api update ************")
+    # task_logger.info("payload:")
+    # task_logger.info(pformat(payload_object))
+    # task_logger.info(f"request_url: {request_url}")
+    # task_logger.info(f"http_method: {http_method}")
+    # task_logger.info(f"request_headers: {request_headers}")
+    # task_logger.info(f"record_id: {record['id']}")
+    # task_logger.info(f"draft_id: {draft.get('id')}")
+
+    response = requests.request(
+        http_method,
+        url=request_url,
+        json=payload_object,
+        allow_redirects=False,
+        timeout=10,
+        headers=request_headers,
+    )
+    print(response)
+    if response.status_code != 200:  # FIXME: Always 200?
+        task_logger.error(
+            "Error sending notification (status code" f" {response.status_code})"
+        )
+        task_logger.error(response.text)
+        raise RuntimeError(
+            f"Error sending notification (status code " f"{response.status_code})"
+        )
+    else:
+        task_logger.info("Notification sent successfully")
+        task_logger.info("response:")
+        task_logger.info(response.json())
+        task_logger.info("-----------------------")
+
+    try:
+        response_string = response.json()
+    except ValueError as e:
+        task_logger.error(f"Error decoding response: {e}")
+        response_string = response.text
+
+    callback = event_config.get("callback")
+    callback_result = None
+    if callback:
+        callback_record = record
+        callback_draft = draft
+        callback_data = data
+        for k in [
+            "is_published",
+            "is_draft",
+            "is_deleted",
+            "parent",
+            "latest_version_index",
+            "latest_version_id",
+            "current_version_index",
+        ]:
+            if callback_record and k in callback_record.keys():
+                del callback_record[k]
+            if callback_draft and k in callback_draft.keys():
+                del callback_draft[k]
+            if callback_data and k in callback_data.keys():
+                del callback_data[k]
+
+        task_logger.info("Calling callback")
+
+        messages_content = [
+            {
+                "response_json": response_string,
+                "service_type": service_type,
+                "service_method": service_method,
+                "request_url": request_url,
+                "payload_object": payload_object,
+                "record": callback_record,
+                "draft": callback_draft,
+                "data": callback_data,
+                **kwargs,
+            }
+        ]
+
+        # Publish the message to the event queue.
+        current_queues.queues["remote-api-provisioning-events"].publish(
+            messages_content
+        )
+        # Send the signal so that Invenio knows to consume the message
+        remote_api_provisioning_triggered.send(app._get_current_object())
+
+        # callback_result = callback.delay(
+        #     response_json=response_string,
+        #     service_type=service_type,
+        #     service_method=service_method,
+        #     request_url=request_url,
+        #     payload_object=payload_object,
+        #     record=callback_record,
+        #     draft=callback_draft,
+        #     **kwargs,
+        # )
+
+    return response.text, callback_result

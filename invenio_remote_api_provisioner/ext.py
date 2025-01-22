@@ -20,6 +20,7 @@ from invenio_remote_api_provisioner.signals import (
     remote_api_provisioning_triggered,
 )
 from invenio_remote_api_provisioner.tasks import send_remote_api_update
+import json
 import os
 from .components import RemoteAPIProvisionerFactory
 
@@ -58,15 +59,13 @@ def on_remote_api_provisioning_triggered(
         current_app.logger.debug(
             f"Consumed event: {event['service_type']} "
             f"{event['service_method']} "
-            f"{event['record']['id']}  ****"
+            f"{event['record'].get('id') or event['data'].get('slug')}  ****"
         )
 
         if os.getenv("MOCK_SIGNAL_SUBSCRIBER"):  # for unit tests
             current_app.logger.debug("Event:")
             current_app.logger.debug(event)
-            os.environ["MOCK_SIGNAL_SUBSCRIBER"] = (
-                f"{event['service_type']}|{event['service_method']}"
-            )
+            os.environ["MOCK_SIGNAL_SUBSCRIBER"] = json.dumps(event)
             return
         else:
             conf = app_obj.config.get("REMOTE_API_PROVISIONER_EVENTS").get(
