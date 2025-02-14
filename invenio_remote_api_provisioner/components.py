@@ -129,13 +129,13 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
     ):
         for endpoint, events in self.endpoints.items():
             if service_method in events.keys():
-                current_app.logger.debug(f"service_method: {service_method}")
-                current_app.logger.debug(f"draft: {draft}")
-                current_app.logger.debug(f"record: {record}")
-                current_app.logger.debug(f"data: {data}")
-                current_app.logger.debug(
-                    f"kwargs: {pformat({k: v for k, v in kwargs.items()})}",
-                )
+                # current_app.logger.debug(f"service_method: {service_method}")
+                # current_app.logger.debug(f"draft: {draft}")
+                # current_app.logger.debug(f"record: {record}")
+                # current_app.logger.debug(f"data: {data}")
+                # current_app.logger.debug(
+                #     f"kwargs: {pformat({k: v for k, v in kwargs.items()})}",
+                # )
                 event_config = events[service_method]
                 timing_field = event_config.get("timing_field")
                 # Prevent infinite loop if callback triggers a
@@ -215,7 +215,7 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
                             "service_type": self.service_type,
                             "service_method": service_method,
                         }
-                        current_app.logger.debug(f"task_payload: {task_payload}")
+                        # current_app.logger.debug(f"task_payload: {task_payload}")
                         uow.register(TaskOp(send_remote_api_update, **task_payload))
 
     methods = list(
