@@ -21,7 +21,7 @@ keywords = ["invenio", "inveniordm", "groups", "social", "research"]
 dependencies = [
     "click",
     "invenio-app-rdm[opensearch2]<13.0.0",
-    "psycopg2",
+    "psycopg2-binary",
     "opensearch-dsl",
     "iso639",
 ]
