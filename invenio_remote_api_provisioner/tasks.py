@@ -240,13 +240,13 @@ def send_remote_api_update(
         .get(endpoint, {})
         .get(service_method, {})
     )
-    task_logger.warning(f"Event config: {event_config}")
-    task_logger.warning(f"Service type: {service_type}")
-    task_logger.warning(f"Endpoint: {endpoint}")
-    task_logger.warning(f"Service method: {service_method}")
-    task_logger.warning(f"Identity: {identity_id}")
-    task_logger.warning(f"Record: {type(record)}")
-    task_logger.warning(f"Draft: {type(draft)}")
+    # task_logger.warning(f"Event config: {event_config}")
+    # task_logger.warning(f"Service type: {service_type}")
+    # task_logger.warning(f"Endpoint: {endpoint}")
+    # task_logger.warning(f"Service method: {service_method}")
+    # task_logger.warning(f"Identity: {identity_id}")
+    # task_logger.warning(f"Record: {type(record)}")
+    # task_logger.warning(f"Draft: {type(draft)}")
 
     payload_object = None
     if event_config.get("payload"):

@@ -23,7 +23,7 @@ dependencies = [
     "invenio-app-rdm[opensearch2]<13.0.0",
     "psycopg2-binary",
     "opensearch-dsl",
-    "iso639",
+    "python-iso639",
 ]
 requires-python = ">=3.9"
 
