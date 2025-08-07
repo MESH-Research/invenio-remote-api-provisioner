@@ -1,6 +1,11 @@
-import arrow
-from flask import current_app
+import json
+import os
+import time
+from pprint import pformat
 
+import arrow
+import pytest  # noqa
+from flask import current_app
 from invenio_access.permissions import system_identity
 from invenio_communities import current_communities
 from invenio_queues import current_queues
@@ -8,15 +13,10 @@ from invenio_rdm_records.proxies import current_rdm_records
 from invenio_remote_api_provisioner.signals import (
     remote_api_provisioning_triggered,
 )
-import json
-import os
-from pprint import pformat
-import pytest  # noqa
-import time
 
 from .helpers.api_helpers import (
-    format_commons_search_payload,
     format_commons_search_collection_payload,
+    format_commons_search_payload,
 )
 
 
@@ -533,9 +533,7 @@ def test_ext_on_remote_api_provisioning_triggered(
 ):
     assert admin.user.roles
 
-    from invenio_vocabularies.proxies import (
-        current_service as vocabulary_service,
-    )
+    from invenio_vocabularies.proxies import current_service as vocabulary_service
 
     vocab_item = vocabulary_service.read(
         admin.identity, ("resourcetypes", "image-photograph")

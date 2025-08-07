@@ -9,24 +9,28 @@
 
 """Celery task to send record event notices to remote API."""
 
+import logging
+import os
+from pathlib import Path
+from pprint import pformat
+from typing import Optional, Union
+
+import requests
+
 # from celery import current_app as current_celery_app
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from flask import Response, current_app as app
+from flask import Response
+from flask import current_app as app
 from flask_principal import Identity
 from invenio_access.permissions import system_identity
 from invenio_access.utils import get_identity
 from invenio_accounts import current_accounts
 from invenio_queues import current_queues
-from invenio_rdm_records.records.api import RDMRecord, RDMDraft
-import logging
-import os
-from pathlib import Path
-from pprint import pformat
-import requests
-from typing import Optional, Union
-from .utils import get_user_idp_info
+from invenio_rdm_records.records.api import RDMDraft, RDMRecord
+
 from .signals import remote_api_provisioning_triggered
+from .utils import get_user_idp_info
 
 task_logger = get_task_logger(__name__)
 

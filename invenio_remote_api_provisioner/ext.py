@@ -7,12 +7,15 @@
 # and/or modify it under the terms of the MIT License; see
 # LICENSE file for more details.
 
+import json
+import os
 from pprint import pformat
+
 from flask import current_app
+from invenio_queues import current_queues
 from invenio_rdm_records.services.communities.components import (
     CommunityServiceComponents as DefaultCommunityComponents,
 )
-from invenio_queues import current_queues
 from invenio_rdm_records.services.components import (
     DefaultRecordsComponents,
 )
@@ -20,11 +23,9 @@ from invenio_remote_api_provisioner.signals import (
     remote_api_provisioning_triggered,
 )
 from invenio_remote_api_provisioner.tasks import send_remote_api_update
-import json
-import os
-from .components import RemoteAPIProvisionerFactory
 
 from . import config
+from .components import RemoteAPIProvisionerFactory
 
 
 def on_remote_api_provisioning_triggered(

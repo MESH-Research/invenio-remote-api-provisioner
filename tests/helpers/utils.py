@@ -1,5 +1,6 @@
-from invenio_accounts.models import User
 from typing import Optional
+
+from invenio_accounts.models import User
 
 
 def update_nested_dict(starting_dict, updates):

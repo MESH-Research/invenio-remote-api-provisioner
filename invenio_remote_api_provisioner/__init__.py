@@ -1,4 +1,5 @@
 from __future__ import absolute_import, print_function
+
 from .ext import InvenioRemoteAPIProvisioner
 
 """An InvenioRDM extension to provision remote APIs with record events.

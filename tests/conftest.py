@@ -14,26 +14,32 @@ fixtures are available.
 """
 
 
+import os
+
 # from traceback import format_exc
 import traceback
+from pathlib import Path
+from pprint import pformat
+
+import marshmallow as ma
 import pytest
 from flask_security.utils import hash_password
 from invenio_access.models import ActionRoles, Role
 from invenio_access.permissions import superuser_access, system_identity
 from invenio_administration.permissions import administration_access_action
 from invenio_app.factory import create_api
-from invenio_rdm_records.proxies import current_rdm_records
-from invenio_communities.proxies import current_communities
 from invenio_communities.communities.records.api import Community
+from invenio_communities.proxies import current_communities
 from invenio_oauthclient.models import UserIdentity
 from invenio_queues.proxies import current_queues
+from invenio_rdm_records.proxies import current_rdm_records
 from invenio_rdm_records.services.pids import providers
 from invenio_rdm_records.services.stats import (
     permissions_policy_lookup_factory,
 )
 from invenio_records_resources.services.custom_fields import (
-    TextCF,
     EDTFDateStringCF,
+    TextCF,
 )
 from invenio_records_resources.services.custom_fields.errors import (
     CustomFieldsException,
@@ -50,22 +56,18 @@ from invenio_search.utils import build_alias_name
 # from invenio_stats.queries import TermsQuery
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
-import marshmallow as ma
-
 from marshmallow.fields import DateTime
 from marshmallow_utils.fields import SanitizedUnicode
-import os
-from pathlib import Path
-from pprint import pformat
-from .helpers.fake_datacite_client import FakeDataCiteClient
+
 from .helpers.api_helpers import (
-    format_commons_search_payload,
-    format_commons_search_collection_payload,
-    record_commons_search_recid,
-    record_commons_search_collection_recid,
-    record_publish_url_factory,
     choose_record_publish_method,
+    format_commons_search_collection_payload,
+    format_commons_search_payload,
+    record_commons_search_collection_recid,
+    record_commons_search_recid,
+    record_publish_url_factory,
 )
+from .helpers.fake_datacite_client import FakeDataCiteClient
 
 pytest_plugins = ("celery.contrib.pytest",)
 

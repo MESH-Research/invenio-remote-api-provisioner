@@ -10,21 +10,22 @@
 
 """RDM service component to trigger external provisioning messages."""
 
+from pprint import pformat
+from typing import Optional
+
 import arrow
 from flask import current_app
 from flask_principal import Identity
 from invenio_drafts_resources.services.records.components import (
     ServiceComponent,
 )
-from invenio_rdm_records.records.api import RDMRecord, RDMDraft
+from invenio_rdm_records.records.api import RDMDraft, RDMRecord
 from invenio_records_resources.services.uow import (
     TaskOp,
-    unit_of_work,
     UnitOfWork,
+    unit_of_work,
 )
 
-from pprint import pformat
-from typing import Optional
 from .tasks import send_remote_api_update
 
 # from .signals import remote_api_provisioning_triggered
