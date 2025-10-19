@@ -10,6 +10,7 @@
 """Celery task to send record event notices to remote API."""
 
 import logging
+import logging.handlers
 import os
 from pathlib import Path
 from pprint import pformat
@@ -96,7 +97,10 @@ def get_payload_object(
                 "email": user.email,
                 "username": user.username,
             }
-            owner.update(user.user_profile)
+            # Add user profile data if available
+            if hasattr(user, 'user_profile') and user.user_profile:
+                owner.update(user.user_profile)
+            # Add IDP info
             owner.update(get_user_idp_info(user))
 
     if callable(payload):
@@ -109,6 +113,7 @@ def get_payload_object(
         raise ValueError(
             "Event payload must be a dict or a callable that returns a" " dict."
         )
+    
     if payload_object and "internal_error" in payload_object.keys():
         raise RuntimeError(payload_object["internal_error"])
     elif not payload_object:
@@ -126,16 +131,16 @@ def get_http_method(
 ) -> str:
 
     if callable(event_config["http_method"]):
-        http_method = event_config["http_method"](
+        http_method: str = event_config["http_method"](
             identity, record=record, draft=draft, **kwargs
         )
     else:
-        http_method = event_config["http_method"]
+        http_method: str = event_config["http_method"]
     return http_method
 
 
 def get_headers(event_config: dict) -> dict:
-    headers = event_config.get("headers", {})
+    headers: dict = event_config.get("headers", {})
     if event_config.get("auth_token"):
         headers["Authorization"] = f"Bearer {event_config['auth_token']}"
     return headers
