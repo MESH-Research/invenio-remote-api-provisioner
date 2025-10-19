@@ -137,21 +137,20 @@ class InvenioRemoteAPIProvisioner(object):
         ]
 
         community_component = RemoteAPIProvisionerFactory(app.config, "community")
-        old_community_components = app.config.get("COMMUNITIES_SERVICE_COMPONENTS", [])
-        if not old_community_components:
-            old_community_components = [*DefaultCommunityComponents]
+        old_community_components = app.config.get(
+            "COMMUNITIES_SERVICE_COMPONENTS", [*DefaultCommunityComponents]
+        )
         app.config["COMMUNITIES_SERVICE_COMPONENTS"] = [
             *old_community_components,
             community_component,
         ]
 
-    def init_listeners(self, app):
+    def init_listeners(self, app) -> None:
         """Initialize listeners for the extension.
 
         Args:
             app (_type_): _description_
         """
-
         remote_api_provisioning_triggered.connect(
             on_remote_api_provisioning_triggered, app
         )
