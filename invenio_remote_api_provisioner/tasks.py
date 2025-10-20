@@ -11,6 +11,7 @@
 import logging
 import logging.handlers
 import os
+from collections.abc import Callable
 from pathlib import Path
 
 import requests
@@ -52,7 +53,7 @@ task_logger.addHandler(file_handler)
 
 def get_payload_object(
     identity: Identity,
-    payload: dict | callable,
+    payload: dict | Callable,
     record: dict = {},
     data: dict = {},
     with_record_owner: bool = False,
