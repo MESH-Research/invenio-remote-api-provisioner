@@ -1,4 +1,3 @@
-from typing import Optional
 
 from invenio_accounts.models import User
 
@@ -32,12 +31,12 @@ def get_commons_user_from_contributor(contributor: dict) -> str:
 
 
 # FIXME: implement
-def get_user_by_commons_username(commons_username: str) -> Optional[User]:
+def get_user_by_commons_username(commons_username: str) -> User | None:
     """Get a kcworks user by their Commons username based on saml login."""
     return None
 
 
-def get_kcworks_user_from_contributor(contributor: dict) -> Optional[User]:
+def get_kcworks_user_from_contributor(contributor: dict) -> User | None:
     """Get the KCWorks user from a contributor dict.
 
     If one can't be found, return None.

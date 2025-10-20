@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of the invenio-remote-api-provisioner package.
 # Copyright (C) 2024, MESH Research.
@@ -13,8 +12,6 @@ import logging
 import logging.handlers
 import os
 from pathlib import Path
-from pprint import pformat
-from typing import Optional, Union
 
 import requests
 
@@ -55,7 +52,7 @@ task_logger.addHandler(file_handler)
 
 def get_payload_object(
     identity: Identity,
-    payload: Union[dict, callable],
+    payload: dict | callable,
     record: dict = {},
     data: dict = {},
     with_record_owner: bool = False,
@@ -178,17 +175,17 @@ def send_remote_api_update(
     is_published: bool = False,
     is_draft: bool = False,
     is_deleted: bool = False,
-    parent: Optional[dict] = None,
-    latest_version_index: Optional[int] = None,
-    latest_version_id: Optional[str] = None,
-    current_version_index: Optional[int] = None,
-    draft: Optional[dict] = None,
+    parent: dict | None = None,
+    latest_version_index: int | None = None,
+    latest_version_id: str | None = None,
+    current_version_index: int | None = None,
+    draft: dict | None = None,
     endpoint: str = "",
     service_type: str = "",
     service_method: str = "",
     data: dict = {},
     **kwargs,
-) -> tuple[Response, Union[dict, str, int, list, None]]:
+) -> tuple[Response, dict | str | int | list | None]:
     """Send a record event update to a remote API.
 
     Parameters:
@@ -226,7 +223,6 @@ def send_remote_api_update(
         tuple[Response, Union[dict, str, int, list, None]]: The response from
         the remote API and the result of the callback function (if any).
     """
-
     record["is_published"] = is_published
     record["is_draft"] = is_draft
     record["is_deleted"] = is_deleted

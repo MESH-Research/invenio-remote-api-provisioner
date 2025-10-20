@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2023 MESH Research
 #
@@ -38,7 +37,6 @@ from invenio_rdm_records.services.stats import (
     permissions_policy_lookup_factory,
 )
 from invenio_records_resources.services.custom_fields import (
-    EDTFDateStringCF,
     TextCF,
 )
 from invenio_records_resources.services.custom_fields.errors import (
@@ -56,7 +54,6 @@ from invenio_search.utils import build_alias_name
 # from invenio_stats.queries import TermsQuery
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
-from marshmallow.fields import DateTime
 from marshmallow_utils.fields import SanitizedUnicode
 
 from .helpers.api_helpers import (
@@ -720,8 +717,8 @@ def minimal_community(app):
                 "id": "event",
             },
             "curation_policy": "Curation policy",
-            "page": f"Information for my community",
-            "website": f"https://my-community.com",
+            "page": "Information for my community",
+            "website": "https://my-community.com",
             "organizations": [
                 {
                     "name": "Organization 1",
@@ -732,7 +729,7 @@ def minimal_community(app):
             "kcr:commons_instance": "knowledgeCommons",
             "kcr:commons_group_id": "mygroup",
             "kcr:commons_group_name": "My Group",
-            "kcr:commons_group_description": (f"My group description"),
+            "kcr:commons_group_description": ("My group description"),
             "kcr:commons_group_visibility": "public",
         },
     }

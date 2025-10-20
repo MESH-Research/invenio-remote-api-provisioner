@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of the invenio-remote-search-provisioner package.
 # (c) 2024 Mesh Research
@@ -10,8 +9,6 @@
 
 """RDM service component to trigger external provisioning messages."""
 
-from pprint import pformat
-from typing import Optional
 
 import arrow
 from flask import current_app
@@ -86,7 +83,6 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
     endpoint, handling any response, and calling any callback function
     defined in the configuration.
     """
-
     all_endpoints = app_config.get("REMOTE_API_PROVISIONER_EVENTS", {})
     endpoints = all_endpoints.get(service_type, {})
     service_type = service_type
@@ -123,9 +119,9 @@ def RemoteAPIProvisionerFactory(app_config, service_type):
         service_method: str,
         identity: Identity,
         record: RDMRecord,
-        draft: Optional[RDMDraft] = None,
-        data: Optional[dict] = None,
-        uow: Optional[UnitOfWork] = None,
+        draft: RDMDraft | None = None,
+        data: dict | None = None,
+        uow: UnitOfWork | None = None,
         **kwargs,
     ):
         for endpoint, events in self.endpoints.items():

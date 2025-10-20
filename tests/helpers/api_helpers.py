@@ -32,7 +32,7 @@ def get_user_profile_info(user_id: int = 0, email: str = "") -> dict:
     params:
         user_id: The user's InvenioRDM id.
 
-    returns:
+    Returns:
         A dict containing the user's profile information with
         the keys "name", "email", "affiliation", and "orcid".
         Or an empty dict if the user has no profile information.
@@ -271,7 +271,6 @@ def record_commons_search_recid(
     **kwargs,
 ):
     """Record the _id of the commons search record."""
-
     # time.sleep(5)
     service = current_rdm_records.records_service
     current_app.logger.debug(
@@ -385,7 +384,6 @@ def record_commons_search_collection_recid(
     **kwargs,
 ):
     """Record the _id of the commons search record."""
-
     service = current_communities.service
     current_app.logger.debug(
         "Callback fired to record search collection recid for "
@@ -443,7 +441,6 @@ def choose_record_publish_method(identity, **kwargs):
 
 def record_publish_url_factory(identity, **kwargs):
     """Create the correct url for publish RDMRecordService events."""
-
     # current_app.logger.debug("Making URL================================")
     record = kwargs.get("record")
     # current_app.logger.debug(f"is_published: {record.is_published}")

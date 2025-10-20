@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of the invenio-remote-api-provisioner package.
 # (c) 2024 Mesh Research

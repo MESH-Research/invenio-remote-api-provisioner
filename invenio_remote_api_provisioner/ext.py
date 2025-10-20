@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of the invenio-remote-api-provisioner package.
 # Copyright (C) 2024, Mesh Research.
@@ -9,7 +8,6 @@
 
 import json
 import os
-from pprint import pformat
 
 from flask import current_app
 from invenio_queues import current_queues
@@ -19,10 +17,10 @@ from invenio_rdm_records.services.communities.components import (
 from invenio_rdm_records.services.components import (
     DefaultRecordsComponents,
 )
+
 from invenio_remote_api_provisioner.signals import (
     remote_api_provisioning_triggered,
 )
-from invenio_remote_api_provisioner.tasks import send_remote_api_update
 
 from . import config
 from .components import RemoteAPIProvisionerFactory
@@ -93,7 +91,7 @@ def on_remote_api_provisioning_triggered(
             # )
 
 
-class InvenioRemoteAPIProvisioner(object):
+class InvenioRemoteAPIProvisioner:
     """Flask extension for invenio-remote-api-provisioner.
 
     Args:

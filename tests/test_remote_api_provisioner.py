@@ -61,7 +61,6 @@ def test_component_publish_signal(
 
     This should not prompt any remote API operations.
     """
-
     monkeypatch.setenv("MOCK_SIGNAL_SUBSCRIBER", "True")
     # import invenio_remote_api_provisioner
 
@@ -380,7 +379,6 @@ def test_component_community_publish_signal(
 
     This should not prompt any remote API operations.
     """
-
     monkeypatch.setenv("MOCK_SIGNAL_SUBSCRIBER", "True")
     rec_url = list(
         app.config["REMOTE_API_PROVISIONER_EVENTS"]["community"].keys()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of the invenio-remote-api-provisioner package.
 # Copyright (C) 2024, MESH Research.
@@ -18,7 +17,7 @@ def get_user_idp_info(user: User) -> dict:
     params:
         user: The user's InvenioRDM id.
 
-    returns:
+    Returns:
         A dict containing the user's IDP information with
         the keys "authentication_source" and "id_from_idp".
         Or an empty dict if the user has no IDP information.

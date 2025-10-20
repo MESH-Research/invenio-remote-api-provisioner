@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This file is part of the invenio-remote-search-provisioner package.
 # © 2024, MESH Research.
