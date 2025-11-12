@@ -96,7 +96,7 @@ def get_payload_object(
                 "username": user.username,
             }
             # Add user profile data if available
-            if hasattr(user, 'user_profile') and user.user_profile:
+            if hasattr(user, "user_profile") and user.user_profile:
                 owner.update(user.user_profile)
             # Add IDP info
             owner.update(get_user_idp_info(user))
@@ -109,9 +109,9 @@ def get_payload_object(
         payload_object = payload
     else:
         raise ValueError(
-            "Event payload must be a dict or a callable that returns a" " dict."
+            "Event payload must be a dict or a callable that returns a dict."
         )
-    
+
     if payload_object and "internal_error" in payload_object.keys():
         raise RuntimeError(payload_object["internal_error"])
     elif not payload_object:
@@ -127,7 +127,6 @@ def get_http_method(
     event_config: dict,
     **kwargs,
 ) -> str:
-
     if callable(event_config["http_method"]):
         http_method: str = event_config["http_method"](
             identity, record=record, draft=draft, **kwargs
@@ -303,11 +302,11 @@ def send_remote_api_update(
     print(response)
     if response.status_code != 200:  # FIXME: Always 200?
         task_logger.error(
-            "Error sending notification (status code" f" {response.status_code})"
+            f"Error sending notification (status code {response.status_code})"
         )
         task_logger.error(response.text)
         raise RuntimeError(
-            f"Error sending notification (status code " f"{response.status_code})"
+            f"Error sending notification (status code {response.status_code})"
         )
     else:
         task_logger.info("Notification sent successfully")
