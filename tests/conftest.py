@@ -12,7 +12,6 @@ See https://pytest-invenio.readthedocs.io/ for documentation on which test
 fixtures are available.
 """
 
-
 import os
 
 # from traceback import format_exc
@@ -98,12 +97,10 @@ def extra_entry_points():
             "ext:InvenioRemoteAPIProvisioner"
         ],
         "invenio_celery.tasks": [
-            "invenio_remote_api_provisioner ="
-            " invenio_remote_api_provisioner."
-            "tasks"
+            "invenio_remote_api_provisioner = invenio_remote_api_provisioner.tasks"
         ],
         "invenio_search.templates": [
-            "invenio_stats = " "invenio_stats.templates:register_templates"
+            "invenio_stats = invenio_stats.templates:register_templates"
         ],
     }
 
@@ -147,9 +144,7 @@ test_config = {
 
 
 parent_path = Path(__file__).parent.parent
-log_file_path = (
-    parent_path / "invenio_api_provisioner" / "logs" / "invenio.log"
-)
+log_file_path = parent_path / "invenio_api_provisioner" / "logs" / "invenio.log"
 
 if not log_file_path.exists():
     log_file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -210,9 +205,7 @@ test_config["COMMUNITIES_CUSTOM_FIELDS_UI"] = [
     {
         "section": "Linked Commons Group",
         "hidden": False,
-        "description": (
-            "Information about a Commons group that owns the collection"
-        ),
+        "description": ("Information about a Commons group that owns the collection"),
         "fields": [
             {
                 "field": "kcr:commons_group_name",
@@ -298,9 +291,7 @@ test_config["RDM_PERSISTENT_IDENTIFIER_PROVIDERS"] = [
     providers.ExternalPIDProvider(
         "external",
         "doi",
-        validators=[
-            providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])
-        ],
+        validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
         label=_("DOI"),
     ),
     # OAI identifier
@@ -501,9 +492,7 @@ test_config["REMOTE_API_PROVISIONER_EVENTS"] = {
 @pytest.fixture(scope="module")
 def resource_type_type(app):
     """Resource type vocabulary type."""
-    return vocabulary_service.create_type(
-        system_identity, "resourcetypes", "rsrct"
-    )
+    return vocabulary_service.create_type(system_identity, "resourcetypes", "rsrct")
 
 
 @pytest.fixture(scope="function")
@@ -583,9 +572,7 @@ def resource_type_v(app, resource_type_type):
 @pytest.fixture(scope="module")
 def community_type_type(app):
     """Resource type vocabulary type."""
-    return vocabulary_service.create_type(
-        system_identity, "communitytypes", "comtyp"
-    )
+    return vocabulary_service.create_type(system_identity, "communitytypes", "comtyp")
 
 
 @pytest.fixture(scope="module")
@@ -650,9 +637,7 @@ def create_records_custom_fields(app):
             namespaces=namespaces,
         )
     except CustomFieldsException as e:
-        print(
-            f"Custom record fields configuration is not valid. {e.description}"
-        )
+        print(f"Custom record fields configuration is not valid. {e.description}")
     # multiple=True makes it an iterable
     properties = Mapping.properties_for_fields(None, available_fields)
 
@@ -690,9 +675,7 @@ def create_communities_custom_fields(app):
 
     try:
         communities_index = dsl.Index(
-            build_alias_name(
-                current_communities.service.config.record_cls.index._name
-            ),
+            build_alias_name(current_communities.service.config.record_cls.index._name),
             using=current_search_client,
         )
         communities_index.put_mapping(body={"properties": properties})
@@ -823,9 +806,7 @@ def sample_communities(app, db):
                             "kcr:commons_instance": instance,
                             "kcr:commons_group_id": c[0],
                             "kcr:commons_group_name": c[1],
-                            "kcr:commons_group_description": (
-                                f"{c[1]} description"
-                            ),
+                            "kcr:commons_group_description": (f"{c[1]} description"),
                             "kcr:commons_group_visibility": "public",
                         },
                     }
@@ -899,9 +880,7 @@ def admin_role_need(db):
     role = Role(name="administration-access")
     db.session.add(role)
 
-    action_role = ActionRoles.create(
-        action=administration_access_action, role=role
-    )
+    action_role = ActionRoles.create(action=administration_access_action, role=role)
     db.session.add(action_role)
 
     db.session.commit()
@@ -918,9 +897,7 @@ def admin(UserFixture, app, db, admin_role_need):
     u.create(app, db)
 
     datastore = app.extensions["security"].datastore
-    _, role = datastore._prepare_role_modify_args(
-        u.user, "administration-access"
-    )
+    _, role = datastore._prepare_role_modify_args(u.user, "administration-access")
 
     UserIdentity.create(u.user, "knowledgeCommons", "myuser")
 
@@ -1015,11 +992,7 @@ def mock_signal_subscriber(app, monkeypatch):
             app_obj.logger.debug("Mocked remote_api_provisioning_triggered")
             app_obj.logger.debug("Events:")
             app_obj.logger(
-                pformat(
-                    current_queues.queues[
-                        "remote-api-provisioning-events"
-                    ].events
-                )
+                pformat(current_queues.queues["remote-api-provisioning-events"].events)
             )
             raise RuntimeError("Mocked remote_api_provisioning_triggered")
 

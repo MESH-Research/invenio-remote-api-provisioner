@@ -1,4 +1,3 @@
-
 from invenio_accounts.models import User
 
 
@@ -6,9 +5,7 @@ def update_nested_dict(starting_dict, updates):
     """Update a nested dictionary with another dictionary."""
     for key, value in updates.items():
         if isinstance(value, dict):
-            starting_dict[key] = update_nested_dict(
-                starting_dict.get(key, {}), value
-            )
+            starting_dict[key] = update_nested_dict(starting_dict.get(key, {}), value)
         else:
             starting_dict[key] = value
     return starting_dict
@@ -22,7 +19,7 @@ def get_commons_user_from_contributor(contributor: dict) -> str:
     id = ""
     if contributor["person_or_org"].get("identifiers"):
         for identifier in contributor["person_or_org"]["identifiers"]:
-            if identifier["scheme"] == "hc_username":
+            if identifier["scheme"] in ["hc_username", "kc_username"]:
                 id = identifier["identifier"]
     # FIXME: get the username from the email?
     # FIXME: get the username from orcid?

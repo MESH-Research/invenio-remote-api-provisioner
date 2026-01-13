@@ -69,9 +69,7 @@ def test_component_publish_signal(
     #     "on_remote_api_provisioning_triggered",
     #     mock_signal_subscriber,
     # )
-    rec_url = list(
-        app.config["REMOTE_API_PROVISIONER_EVENTS"]["rdm_record"].keys()
-    )[0]
+    rec_url = list(app.config["REMOTE_API_PROVISIONER_EVENTS"]["rdm_record"].keys())[0]
     remote_response = {
         "_internal_id": "1234AbCD?",  # can't mock because set at runtime
         "_id": "2E9SqY0Bdd2QL-HGeUuA",
@@ -98,9 +96,7 @@ def test_component_publish_signal(
     # Draft edit, no remote API operations should be prompted
     minimal_edited = minimal_record.copy()
     minimal_edited["metadata"]["title"] = "A Romans Story 2"
-    edited_draft = service.update_draft(
-        admin.identity, draft.id, minimal_record
-    )
+    edited_draft = service.update_draft(admin.identity, draft.id, minimal_record)
     actual_edited = edited_draft.data
     assert actual_edited["metadata"]["title"] == "A Romans Story 2"
     assert requests_mock.call_count == 1  # user update at token login
@@ -115,9 +111,7 @@ def test_component_publish_signal(
 
     read_record = service.read(admin.identity, record.id)
     assert read_record.data["metadata"]["title"] == "A Romans Story 2"
-    assert (
-        os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"
-    )  # wasn't set by subscriber
+    assert os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"  # wasn't set by subscriber
 
     # draft new version
     # no remote API operation should be prompted
@@ -132,20 +126,16 @@ def test_component_publish_signal(
     assert new_version.data["versions"]["is_latest"] is False
     assert new_version.data["versions"]["is_latest_draft"] is True
     # assert requests_mock.call_count == 1
-    assert (
-        os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"
-    )  # wasn't set by subscriber
+    assert os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"  # wasn't set by subscriber
 
     # edited draft new version
     # no remote API operation should be prompted
     new_edited_data = new_version.data.copy()
-    new_edited_data["metadata"]["publication_date"] = arrow.now().format(
-        "YYYY-MM-DD"
-    )
+    new_edited_data["metadata"]["publication_date"] = arrow.now().format("YYYY-MM-DD")
     new_edited_data["metadata"]["title"] = "A Romans Story 3"
-    new_edited_data["custom_fields"]["kcr:commons_search_recid"] = (
-        remote_response["_id"]
-    )  # simulate the result of previous remote API operation
+    new_edited_data["custom_fields"]["kcr:commons_search_recid"] = remote_response[
+        "_id"
+    ]  # simulate the result of previous remote API operation
     new_edited_version = service.update_draft(
         admin.identity, new_version.id, new_edited_data
     )
@@ -157,14 +147,10 @@ def test_component_publish_signal(
     assert new_edited_version.data["versions"]["is_latest"] is False
     assert new_edited_version.data["versions"]["is_latest_draft"] is True
     assert (
-        new_edited_version.data["custom_fields"].get(
-            "kcr:commons_search_recid"
-        )
+        new_edited_version.data["custom_fields"].get("kcr:commons_search_recid")
         == remote_response["_id"]
     )
-    assert (
-        os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"
-    )  # wasn't set by subscriber
+    assert os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"  # wasn't set by subscriber
 
     # publish new version
     # this should trigger a remote API operation
@@ -183,18 +169,14 @@ def test_component_publish_signal(
     new_published_version = service.publish(admin.identity, new_version.id)
     assert os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "rdm_record|publish"
     monkeypatch.setenv("MOCK_SIGNAL_SUBSCRIBER", "True")
-    assert (
-        new_published_version.data["metadata"]["title"] == "A Romans Story 3"
-    )
+    assert new_published_version.data["metadata"]["title"] == "A Romans Story 3"
 
     read_new_version = service.read(admin.identity, new_published_version.id)
     assert (
         read_new_version.data["custom_fields"].get("kcr:commons_search_recid")
         == remote_response_2["_id"]
     )
-    assert (
-        os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"
-    )  # wasn't set by subscriber
+    assert os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"  # wasn't set by subscriber
 
     deleted_record = service.delete_record(
         admin.identity, new_published_version.id, data={}
@@ -254,9 +236,7 @@ def test_component_publish_signal(
                     }
                 },
             ],
-            "publication_date": read_new_version.data["metadata"][
-                "publication_date"
-            ],
+            "publication_date": read_new_version.data["metadata"]["publication_date"],
             "publisher": "Acme Inc",
             "resource_type": {
                 "id": "image-photograph",
@@ -282,9 +262,7 @@ def test_component_publish_signal(
         },
         "pids": {
             "oai": {
-                "identifier": read_new_version.data["pids"]["oai"][
-                    "identifier"
-                ],
+                "identifier": read_new_version.data["pids"]["oai"]["identifier"],
                 "provider": "oai",
             }
         },
@@ -311,9 +289,7 @@ def test_component_publish_signal(
             "3. Acme Inc.",
             "is_visible": True,
             "note": "",
-            "removal_date": new_edited_version.data["metadata"][
-                "publication_date"
-            ],
+            "removal_date": new_edited_version.data["metadata"]["publication_date"],
             "removed_by": {"user": "1"},
         },
         "versions": {"index": 2, "is_latest": False},
@@ -324,14 +300,9 @@ def test_component_publish_signal(
 
     # any extra queue events?
     assert (
-        len(
-            [
-                c
-                for c in current_queues.queues[
-                    "remote-api-provisioning-events"
-                ].consume()
-            ]
-        )
+        len([
+            c for c in current_queues.queues["remote-api-provisioning-events"].consume()
+        ])
         == 0
     )
 
@@ -380,9 +351,7 @@ def test_component_community_publish_signal(
     This should not prompt any remote API operations.
     """
     monkeypatch.setenv("MOCK_SIGNAL_SUBSCRIBER", "True")
-    rec_url = list(
-        app.config["REMOTE_API_PROVISIONER_EVENTS"]["community"].keys()
-    )[0]
+    rec_url = list(app.config["REMOTE_API_PROVISIONER_EVENTS"]["community"].keys())[0]
     remote_response = {
         "_internal_id": "1234AbCD?",  # can't mock because set at runtime
         "_id": "2E9SqY0Bdd2QL-HGeUuA",
@@ -424,13 +393,9 @@ def test_component_community_publish_signal(
     minimal_edited = minimal_community.copy()
     minimal_edited["metadata"]["title"] = "My Community 2"
     # simulate the result of previous remote API operation
-    minimal_edited["custom_fields"]["kcr:commons_search_recid"] = (
-        remote_response["_id"]
-    )
-    minimal_edited["custom_fields"][
-        "kcr:commons_search_updated"
-    ] = arrow.utcnow().format(
-        "YYYY-MM-DDTHH:mm:ssZ"
+    minimal_edited["custom_fields"]["kcr:commons_search_recid"] = remote_response["_id"]
+    minimal_edited["custom_fields"]["kcr:commons_search_updated"] = (
+        arrow.utcnow().format("YYYY-MM-DDTHH:mm:ssZ")
     )  # simulate the result of previous remote API operation
 
     time.sleep(5)
@@ -443,10 +408,8 @@ def test_component_community_publish_signal(
         edited_new.data["custom_fields"].get("kcr:commons_search_recid")
         == remote_response["_id"]
     )
-    minimal_edited["custom_fields"][
-        "kcr:commons_search_updated"
-    ] = arrow.utcnow().format(
-        "YYYY-MM-DDTHH:mm:ssZ"
+    minimal_edited["custom_fields"]["kcr:commons_search_updated"] = (
+        arrow.utcnow().format("YYYY-MM-DDTHH:mm:ssZ")
     )  # simulate the result of previous remote API operation
     assert os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "community|update"
     monkeypatch.setenv("MOCK_SIGNAL_SUBSCRIBER", "True")
@@ -456,14 +419,10 @@ def test_component_community_publish_signal(
         read_edited.data["custom_fields"].get("kcr:commons_search_recid")
         == remote_response["_id"]
     )
-    assert (
-        os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"
-    )  # read doesn't trigger signal
+    assert os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "True"  # read doesn't trigger signal
 
     time.sleep(5)
-    deleted = service.delete_community(
-        system_identity, read_edited.id, data={}
-    )
+    deleted = service.delete_community(system_identity, read_edited.id, data={})
     assert os.getenv("MOCK_SIGNAL_SUBSCRIBER") == "community|delete"
     # deleted_actual_data = {
     #     k: v
@@ -560,9 +519,7 @@ def test_ext_on_remote_api_provisioning_triggered(
         "title": "A Romans Story 2",
         "primary_url": f"http://works.kcommons.org/records/{read_record.data['id']}",
     }
-    resp_url = list(
-        app.config["REMOTE_API_PROVISIONER_EVENTS"]["rdm_record"].keys()
-    )[0]
+    resp_url = list(app.config["REMOTE_API_PROVISIONER_EVENTS"]["rdm_record"].keys())[0]
     requests_mock.post(
         resp_url,
         json=mock_response,
@@ -617,7 +574,7 @@ def test_ext_on_remote_api_provisioning_triggered(
         "owner": {
             "name": "",
             "owner_username": None,
-            "url": "http://hcommons.org/profiles/None",
+            "url": "https://profiles.hcommons.org/members/None",
         },
         "primary_url": f"http://works.kcommons.org/records/{read_record.data['id']}",
         "publication_date": "2020-06-01",
@@ -666,9 +623,7 @@ def test_ext_on_remote_api_provisioning_triggered_community(
         "title": "My Community",
         "primary_url": "http://works.kcommons.org/collections/my-community",
     }
-    resp_url = list(
-        app.config["REMOTE_API_PROVISIONER_EVENTS"]["community"].keys()
-    )[0]
+    resp_url = list(app.config["REMOTE_API_PROVISIONER_EVENTS"]["community"].keys())[0]
     requests_mock.post(
         resp_url,
         json=mock_response,
@@ -760,9 +715,9 @@ def test_ext_on_remote_api_provisioning_triggered_community(
         "network_node": "works",
         "other_urls": [],
         "owner": {
-            "name": "",
-            "owner_username": None,
-            "url": "http://hcommons.org/profiles/None",
+            "name": "My User",
+            "owner_username": "myuser",
+            "url": "https://profiles.hcommons.org/profiles/myuser",
         },
         "primary_url": f"http://works.kcommons.org/records/{read_record.data['id']}",
         "publication_date": "2020-06-01",
