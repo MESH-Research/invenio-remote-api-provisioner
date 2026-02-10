@@ -1,63 +1,56 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61", "wheel"]
+
 [project]
 name = "invenio-remote-api-provisioner"
 version = "0.1.0.dev1"
 description = "A generic framework for provisioning external APIs for InvenioRDM events relating to records and communities"
 readme = "README.md"
-authors = [{ name = "MESH Research", email = "scottia4@msu.edu" }]
+keywords = ["groups", "invenio", "inveniordm", "research", "social"]
 license = { file = "LICENSE" }
-classifiers = [
-    "License :: OSI Approved :: MIT License",
-    "Development Status :: 3 - Alpha",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Environment :: Web Environment",
-    "Intended Audience :: Developers",
-    "Operating System :: OS Independent",
-    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-    "Topic :: Software Development :: Libraries :: Python Modules"
-]
-keywords = ["invenio", "inveniordm", "groups", "social", "research"]
-dependencies = [
-    "click",
-    "invenio-app-rdm[opensearch2]<13.0.0",
-    "psycopg2-binary",
-    "opensearch-dsl",
-    "python-iso639",
-]
+authors = [{ name = "MESH Research", email = "scottia4@msu.edu" }]
 requires-python = ">=3.9"
 
-[project.optional-dependencies]
-dev = [
-    "bumpver",
-    "check-manifest",
-    "docker-services-cli",
-    "pip-tools",
-    "pytest>=7.3.2",
-    "pytest-invenio",
-    "pytest-runner",
-    "requests-mock",
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Web Environment",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+  "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-
-
-[project.urls]
-Homepage = "https://github.com/MESH-Research/invenio-remote-api-provisioner"
-
-[tool.pytest.ini_options]
-addopts = "--doctest-glob='*.rst' --doctest-modules --ignore=tests/helpers"
-testpaths = [ "tests", "invenio_remote_api_provisioner" ]
-
-[project.entry-points."invenio_base.apps"]
-invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
-
-[project.entry-points."invenio_base.api_apps"]
-invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
-
-[project.entry-points."invenio_celery.tasks"]
-invenio_remote_api_provisioner = "invenio_remote_api_provisioner.tasks"
-
-[project.entry-points."invenio_queues.queues"]
-invenio_remote_api_provisioner = "invenio_remote_api_provisioner.queues:declare_queues"
+dependencies = [
+  "click",
+  "invenio-app-rdm[opensearch2]<14",
+  "opensearch-dsl",
+  "psycopg2-binary",
+  "python-iso639",
+]
+optional-dependencies.dev = [
+  "bumpver",
+  "check-manifest",
+  "docker-services-cli",
+  "pip-tools",
+  "pytest>=7.3.2",
+  "pytest-invenio",
+  "pytest-runner",
+  "requests-mock",
+]
+urls.Homepage = "https://github.com/MESH-Research/invenio-remote-api-provisioner"
+entry-points."invenio_base.api_apps".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
+entry-points."invenio_base.apps".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
+entry-points."invenio_celery.tasks".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.tasks"
+entry-points."invenio_queues.queues".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.queues:declare_queues"
 
 [tool.check-manifest]
 ignore = [
@@ -81,6 +74,10 @@ ignore = [
   "invenio_record_importer_kcworks/dependencies/*",
 ]
 
+[tool.pytest.ini_options]
+addopts = "--doctest-glob='*.rst' --doctest-modules --ignore=tests/helpers"
+testpaths = ["tests", "invenio_remote_api_provisioner"]
+
 [tool.bumpver]
 current_version = "0.1.0.dev1"
 version_pattern = "MAJOR.MINOR.PATCH[-TAGNUM]"
@@ -94,20 +91,7 @@ tag = true
 push = true
 
 [tool.bumpver.file_patterns]
-"pyproject.toml" = [
-    'version = "{version}"',
-    'current_version = "{version}"',
-]
-"README.md" = [
-    "Version {version}",
-]
-"VERSION" = [
-    '^"{version}"',
-]
-"invenio_record_importer_kcworks/__init__.py" = [
-    '^__version__ = "{version}"',
-]
-
-[build-system]
-requires = ["setuptools>=61.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
+"pyproject.toml" = ['version = "{version}"', 'current_version = "{version}"']
+"README.md" = ["Version {version}"]
+"VERSION" = ['^"{version}"']
+"invenio_record_importer_kcworks/__init__.py" = ['^__version__ = "{version}"']
