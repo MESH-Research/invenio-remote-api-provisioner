@@ -42,7 +42,7 @@ optional-dependencies.dev = [
   "docker-services-cli",
   "pip-tools",
   "pytest>=7.3.2",
-  "pytest-invenio",
+  "pytest-invenio>=3.3,<4",
   "pytest-runner",
   "requests-mock",
 ]
