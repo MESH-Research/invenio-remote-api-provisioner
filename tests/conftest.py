@@ -63,7 +63,7 @@ from .helpers.api_helpers import (
     record_commons_search_recid,
     record_publish_url_factory,
 )
-from .helpers.fake_datacite_client import FakeDataCiteClient
+from .fake_datacite_client import FakeDataCiteClient
 
 pytest_plugins = ("celery.contrib.pytest",)
 
