@@ -1,16 +1,18 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools>=61", "wheel"]
+requires = ["babel>2.8", "setuptools>=61", "wheel"]
 
 [project]
 name = "invenio-remote-api-provisioner"
 version = "0.1.0.dev1"
 description = "A generic framework for provisioning external APIs for InvenioRDM events relating to records and communities"
+
 readme = "README.md"
 keywords = ["groups", "invenio", "inveniordm", "research", "social"]
+
 license = { file = "LICENSE" }
 authors = [{ name = "MESH Research", email = "scottia4@msu.edu" }]
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -20,9 +22,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -32,25 +31,84 @@ classifiers = [
 dependencies = [
   "click",
   "invenio-app-rdm[opensearch2]<14",
+  "kcworks",
   "opensearch-dsl",
   "psycopg2-binary",
   "python-iso639",
+  "standard-pkg-resources",
 ]
-optional-dependencies.dev = [
-  "bumpver",
-  "check-manifest",
+optional-dependencies.dev = ["bumpver", "check-manifest"]
+optional-dependencies.tests = [
+  "coverage",
   "docker-services-cli",
+  "mypy>=1.8",
   "pip-tools",
-  "pytest>=7.3.2",
+  "pytest",
+  "pytest-cov>=6.2.1",
   "pytest-invenio>=3.3,<4",
+  "pytest-isort>=4",
+  "pytest-mock",
+  "pytest-mypy>=0.10",
+  "pytest-ruff>=0.1",
   "pytest-runner",
   "requests-mock",
+  "ruff>=0.3",
+  "selenium",
 ]
+
 urls.Homepage = "https://github.com/MESH-Research/invenio-remote-api-provisioner"
+
 entry-points."invenio_base.api_apps".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
 entry-points."invenio_base.apps".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
 entry-points."invenio_celery.tasks".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.tasks"
 entry-points."invenio_queues.queues".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.queues:declare_queues"
+
+[tool.uv.sources]
+kcworks = { path = "../../../..", editable = true }
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+exclude = [
+  "**/*.ipynb",    # Exclude Jupyter notebook files
+  "app_data",
+  "docs",
+  "node_modules",
+  "scripts",
+  "tests/helpers",
+]
+# temporarily removed C for complexity checks
+lint.select = ["B", "D", "DOC", "E", "F", "I", "UP"]
+# Now Ruff handles formatting, so enable formatting rules
+lint.ignore = [
+  "D412", # Missing blank line before closing docstring
+  # Keep some warnings disabled
+  "W1", # Indentation warnings
+  "W2", # Whitespace warnings
+  "W3", # Blank line warnings
+]
+lint.per-file-ignores."__init__.py" = ["D104", "E402", "F401"]
+lint.per-file-ignores."tests/api/test_stats.py" = ["C416"]
+# Ensure consistent import sorting - explicitly declare tests as first-party
+lint.isort.known-first-party = ["tests"]
+lint.pydocstyle.convention = "google"
+lint.preview = true
+
+[tool.isort]
+profile = "black"
+line_length = 88
+verbose = true
+multi_line_output = 3 # Vertical hanging indent
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+split_on_trailing_comma = true
+skip = [
+  "__pycache__", # Skip cache directories
+  # ".venv",  # Skip virtual environment
+  # "node_modules",  # Skip node modules
+]
 
 [tool.check-manifest]
 ignore = [
@@ -66,17 +124,67 @@ ignore = [
   ".bzrignore",
   ".gitattributes",
   ".github/*",
-  ".travis.yml",
-  "Jenkinsfile",
   "* .mo",
   "dist/*",
   "build/*",
-  "invenio_record_importer_kcworks/dependencies/*",
 ]
 
 [tool.pytest.ini_options]
-addopts = "--doctest-glob='*.rst' --doctest-modules --ignore=tests/helpers"
+addopts = """
+--ruff --doctest-modules
+--log-cli-level=DEBUG
+--ignore=app_data
+--ignore=docs
+--ignore=node_modules
+--ignore=scripts
+--ignore=tests/helpers
+--cov=invenio_remote_api_provisioner 
+--cov-report=term-missing
+"""
+norecursedirs = []
+log_cli_level = "DEBUG"
+isort_show_files = true
+plugins = []
 testpaths = ["tests", "invenio_remote_api_provisioner"]
+
+[tool.coverage.run]
+omit = []
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = false
+warn_no_return = false
+ignore_missing_imports = true
+follow_imports = "skip"
+allow_untyped_globals = true
+exclude = ['^tests/']
+
+[tool.babel.compile_catalog]
+directory = "translations/"
+use-fuzzy = true
+
+[tool.babel.extract_messages]
+copyright_holder = "Mesh Research"
+msgid_bugs_address = "scottia4@msu.edu"
+mapping-file = "translations/babel.ini"
+output-file = "translations/messages.pot"
+add-comments = "NOTE"
+
+[tool.babel.init_catalog]
+input-file = "translations/messages.pot"
+output-dir = "translations/"
+
+[tool.babel.update_catalog]
+input-file = "translations/messages.pot"
+output-dir = "translations/"
 
 [tool.bumpver]
 current_version = "0.1.0.dev1"
