@@ -690,7 +690,7 @@ def minimal_community(app):
         "access": {
             "visibility": "public",
             "member_policy": "open",
-            "record_policy": "open",
+            "record_submission_policy": "open",
         },
         "slug": "my-community",
         "metadata": {
@@ -784,7 +784,7 @@ def sample_communities(app, db):
                         "access": {
                             "visibility": "public",
                             "member_policy": "open",
-                            "record_policy": "open",
+                            "record_submission_policy": "open",
                         },
                         "slug": c[2].lower().replace(" ", "-"),
                         "metadata": {

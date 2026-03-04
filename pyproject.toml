@@ -203,3 +203,6 @@ push = true
 "README.md" = ["Version {version}"]
 "VERSION" = ['^"{version}"']
 "invenio_record_importer_kcworks/__init__.py" = ['^__version__ = "{version}"']
+
+[tool.pylsp.plugins.jedi]
+extra_paths = ["../../.."]  # kcworks (site/)
