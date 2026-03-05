@@ -870,14 +870,14 @@ def users(UserFixture, app, db) -> list:
 
 @pytest.fixture()
 def admin_role_need(db):
-    """Store 1 role with 'superuser-access' ActionNeed.
+    """Store 1 role with 'administration' that has administration-access ActionNeed.
 
     WHY: This is needed because expansion of ActionNeed is
          done on the basis of a User/Role being associated with that Need.
          If no User/Role is associated with that Need (in the DB), the
          permission is expanded to an empty list.
     """
-    role = Role(name="administration-access")
+    role = Role(name="administration")
     db.session.add(role)
 
     action_role = ActionRoles.create(action=administration_access_action, role=role)
@@ -897,7 +897,7 @@ def admin(UserFixture, app, db, admin_role_need):
     u.create(app, db)
 
     datastore = app.extensions["security"].datastore
-    _, role = datastore._prepare_role_modify_args(u.user, "administration-access")
+    _, role = datastore._prepare_role_modify_args(u.user, "administration")
 
     UserIdentity.create(u.user, "knowledgeCommons", "myuser")
 
