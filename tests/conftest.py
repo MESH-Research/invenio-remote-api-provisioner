@@ -399,7 +399,7 @@ test_config["REMOTE_API_PROVISIONER_EVENTS"] = {
                 "payload": format_commons_search_payload,
                 "callback": record_commons_search_recid,
                 "url_factory": record_publish_url_factory,
-                "auth_token": os.getenv("COMMONS_API_TOKEN"),
+                "auth_token": os.getenv("COMMONS_SEARCH_API_TOKEN"),
                 "timing_field": "kcr:commons_search_updated",
             },
             "delete_record": {
@@ -410,7 +410,7 @@ test_config["REMOTE_API_PROVISIONER_EVENTS"] = {
                     "https://search.hcommons-dev.org/api/v1/documents/"
                     f"{kwargs['record']['custom_fields']['kcr:commons_search_recid']}"  # noqa: E501
                 ),
-                "auth_token": os.getenv("COMMONS_API_TOKEN"),
+                "auth_token": os.getenv("COMMONS_SEARCH_API_TOKEN"),
             },
             "delete": {
                 "http_method": "DELETE",
@@ -421,7 +421,7 @@ test_config["REMOTE_API_PROVISIONER_EVENTS"] = {
                     f"{kwargs['record']['custom_fields']['kcr:commons_search_recid']}"  # noqa: E501
                 ),
                 # "headers": {"Authorization": "Bearer 12345"},
-                "auth_token": os.getenv("COMMONS_API_TOKEN"),
+                "auth_token": os.getenv("COMMONS_SEARCH_API_TOKEN"),
             },
             "restore_record": {
                 "http_method": "POST",
@@ -429,7 +429,7 @@ test_config["REMOTE_API_PROVISIONER_EVENTS"] = {
                 # "payload": format_commons_search_payload,
                 "callback": record_commons_search_recid,
                 # "headers": {"Authorization": "Bearer 12345"},
-                "auth_token": os.getenv("COMMONS_API_TOKEN"),
+                "auth_token": os.getenv("COMMONS_SEARCH_API_TOKEN"),
             },
         },
     },
@@ -440,7 +440,7 @@ test_config["REMOTE_API_PROVISIONER_EVENTS"] = {
                 "with_record_owner": False,
                 "payload": format_commons_search_collection_payload,
                 "callback": record_commons_search_collection_recid,
-                "auth_token": os.getenv("COMMONS_API_TOKEN"),
+                "auth_token": os.getenv("COMMONS_SEARCH_API_TOKEN"),
             },
             "update": {
                 "http_method": "PUT",
@@ -451,7 +451,7 @@ test_config["REMOTE_API_PROVISIONER_EVENTS"] = {
                     f"{kwargs['record']['custom_fields']['kcr:commons_search_recid']}"  # noqa: E501
                 ),
                 "callback": record_commons_search_collection_recid,
-                "auth_token": os.getenv("COMMONS_API_TOKEN"),
+                "auth_token": os.getenv("COMMONS_SEARCH_API_TOKEN"),
                 "timing_field": "kcr:commons_search_updated",
             },
             "delete": {  # delete_community method uses delete components
@@ -460,14 +460,14 @@ test_config["REMOTE_API_PROVISIONER_EVENTS"] = {
                     "https://search.hcommons-dev.org/api/v1/documents/"
                     f"{kwargs['record']['custom_fields']['kcr:commons_search_recid']}"  # noqa: E501
                 ),
-                "auth_token": os.getenv("COMMONS_API_TOKEN"),
+                "auth_token": os.getenv("COMMONS_SEARCH_API_TOKEN"),
             },
             "restore": {  # restore_community method uses restore components
                 "http_method": "POST",
                 "with_record_owner": True,
                 "payload": format_commons_search_collection_payload,
                 "callback": record_commons_search_collection_recid,
-                "auth_token": os.getenv("COMMONS_API_TOKEN"),
+                "auth_token": os.getenv("COMMONS_SEARCH_API_TOKEN"),
             },
         },
     },
