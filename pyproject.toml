@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["babel>2.8", "setuptools>=61", "wheel"]
+requires = ["babel>2.8", "setuptools>=83", "wheel"]
 
 [project]
 name = "invenio-remote-api-provisioner"
