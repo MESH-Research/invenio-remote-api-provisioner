@@ -8,7 +8,22 @@
 
 """Utility functions for invenio-remote-api-provisioner."""
 
+from urllib.parse import urlsplit
+
 from invenio_accounts.models import User
+
+
+def safe_request_target(url: str) -> str:
+    """Return scheme+host+path for logs (omit query string).
+
+    Args:
+        url: Full request URL.
+
+    Returns:
+        A log-safe URL without query parameters.
+    """
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.netloc}{parts.path}"
 
 
 def get_user_idp_info(user: User) -> dict:

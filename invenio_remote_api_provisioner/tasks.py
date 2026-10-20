@@ -29,7 +29,7 @@ from invenio_queues import current_queues
 from invenio_rdm_records.records.api import RDMDraft, RDMRecord
 
 from .signals import remote_api_provisioning_triggered
-from .utils import get_user_idp_info
+from .utils import get_user_idp_info, safe_request_target
 
 task_logger = get_task_logger(__name__)
 
@@ -299,20 +299,29 @@ def send_remote_api_update(
         timeout=10,
         headers=request_headers,
     )
-    print(response)
+    record_id = record.get("id") if record else None
+    log_target = safe_request_target(request_url)
     if response.status_code != 200:  # FIXME: Always 200?
         task_logger.error(
-            f"Error sending notification (status code {response.status_code})"
+            "Error sending notification (status_code=%s method=%s "
+            "url=%s record_id=%s)",
+            response.status_code,
+            http_method,
+            log_target,
+            record_id,
         )
-        task_logger.error(response.text)
         raise RuntimeError(
             f"Error sending notification (status code {response.status_code})"
         )
     else:
-        task_logger.info("Notification sent successfully")
-        task_logger.info("response:")
-        task_logger.info(response.json())
-        task_logger.info("-----------------------")
+        task_logger.info(
+            "Notification sent successfully (status_code=%s method=%s "
+            "url=%s record_id=%s)",
+            response.status_code,
+            http_method,
+            log_target,
+            record_id,
+        )
 
     try:
         response_string = response.json()
