@@ -6,14 +6,11 @@ requires = ["babel>2.8", "setuptools>=83", "wheel"]
 name = "invenio-remote-api-provisioner"
 version = "0.1.0-dev1"
 description = "A generic framework for provisioning external APIs for InvenioRDM events relating to records and communities"
-
 readme = "README.md"
 keywords = ["groups", "invenio", "inveniordm", "research", "social"]
-
 license = "MIT"
 authors = [{ name = "MESH Research", email = "scottia4@msu.edu" }]
 requires-python = ">=3.12"
-
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Web Environment",
@@ -41,7 +38,6 @@ optional-dependencies.tests = [
   "coverage",
   "docker-services-cli",
   "mypy>=1.8",
-  "pip-tools",
   "pytest",
   "pytest-cov>=6.2.1",
   "pytest-invenio>=3.3,<4",
@@ -54,16 +50,14 @@ optional-dependencies.tests = [
   "ruff>=0.3",
   "selenium",
 ]
-
 urls.Homepage = "https://github.com/MESH-Research/invenio-remote-api-provisioner"
-
 entry-points."invenio_base.api_apps".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
 entry-points."invenio_base.apps".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.ext:InvenioRemoteAPIProvisioner"
 entry-points."invenio_celery.tasks".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.tasks"
 entry-points."invenio_queues.queues".invenio_remote_api_provisioner = "invenio_remote_api_provisioner.queues:declare_queues"
 
-[tool.uv.sources]
-kcworks = { path = "../../../..", editable = true }
+[tool.uv]
+sources.kcworks = { path = "../../../..", editable = true }
 
 [tool.ruff]
 target-version = "py312"
@@ -128,27 +122,6 @@ ignore = [
   "build/*",
 ]
 
-[tool.pytest.ini_options]
-addopts = """
---ruff --doctest-modules
---log-cli-level=DEBUG
---ignore=app_data
---ignore=docs
---ignore=node_modules
---ignore=scripts
---ignore=tests/helpers
---cov=invenio_remote_api_provisioner 
---cov-report=term-missing
-"""
-norecursedirs = []
-log_cli_level = "DEBUG"
-isort_show_files = true
-plugins = []
-testpaths = ["tests", "invenio_remote_api_provisioner"]
-
-[tool.coverage.run]
-omit = []
-
 [tool.mypy]
 python_version = "3.12"
 warn_return_any = true
@@ -164,26 +137,28 @@ warn_no_return = false
 ignore_missing_imports = true
 follow_imports = "skip"
 allow_untyped_globals = true
-exclude = ['^tests/']
+exclude = ["^tests/"]
 
-[tool.babel.compile_catalog]
-directory = "translations/"
-use-fuzzy = true
+[tool.pytest]
+ini_options.addopts = """
+--ruff --doctest-modules
+--log-cli-level=DEBUG
+--ignore=app_data
+--ignore=docs
+--ignore=node_modules
+--ignore=scripts
+--ignore=tests/helpers
+--cov=invenio_remote_api_provisioner
+--cov-report=term-missing
+"""
+ini_options.norecursedirs = []
+ini_options.log_cli_level = "DEBUG"
+ini_options.isort_show_files = true
+ini_options.plugins = []
+ini_options.testpaths = ["tests", "invenio_remote_api_provisioner"]
 
-[tool.babel.extract_messages]
-copyright_holder = "Mesh Research"
-msgid_bugs_address = "scottia4@msu.edu"
-mapping-file = "translations/babel.ini"
-output-file = "translations/messages.pot"
-add-comments = "NOTE"
-
-[tool.babel.init_catalog]
-input-file = "translations/messages.pot"
-output-dir = "translations/"
-
-[tool.babel.update_catalog]
-input-file = "translations/messages.pot"
-output-dir = "translations/"
+[tool.coverage]
+run.omit = []
 
 [tool.bumpversion]
 current_version = "0.1.0-dev1"
@@ -198,15 +173,12 @@ commit = false
 tag = false
 allow_shell_hooks = false
 message = "Bump version: {current_version} → {new_version}"
-
-[tool.bumpversion.parts.pre_l]
-values = ["dev", "rc", "final"]
-optional_value = "final"
+parts.pre_l.values = ["dev", "rc", "final"]
+parts.pre_l.optional_value = "final"
 
 # pyproject.toml project.version and tool.bumpversion.current_version are
 # updated automatically by bump-my-version's update_config_file; listing them
 # here double-applies a whole-file search and fails on the second entry.
-
 [[tool.bumpversion.files]]
 filename = "README.md"
 search = "Version {current_version}"
@@ -222,5 +194,18 @@ filename = "invenio_remote_api_provisioner/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
 
-[tool.pylsp.plugins.jedi]
-extra_paths = ["../../.."]  # kcworks (site/)
+[tool.babel]
+compile_catalog.directory = "translations/"
+compile_catalog.use-fuzzy = true
+extract_messages.copyright_holder = "Mesh Research"
+extract_messages.msgid_bugs_address = "scottia4@msu.edu"
+extract_messages.mapping-file = "translations/babel.ini"
+extract_messages.output-file = "translations/messages.pot"
+extract_messages.add-comments = "NOTE"
+init_catalog.input-file = "translations/messages.pot"
+init_catalog.output-dir = "translations/"
+update_catalog.input-file = "translations/messages.pot"
+update_catalog.output-dir = "translations/"
+
+[tool.pylsp]
+plugins.jedi.extra_paths = ["../../.."] # kcworks (site/)
